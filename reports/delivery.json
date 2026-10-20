@@ -1,0 +1,191 @@
+{
+  "checks": {
+    "ruff": {
+      "exit_code": 0,
+      "seconds": 0.17199999996228144
+    },
+    "mypy": {
+      "exit_code": 0,
+      "seconds": 2.1089999999967404
+    },
+    "pytest": {
+      "exit_code": 0,
+      "seconds": 39.40600000001723
+    },
+    "workflow_structure": {
+      "exit_code": 0,
+      "seconds": 0.125
+    },
+    "aws_static_config": {
+      "exit_code": 0,
+      "seconds": 0.1720000000204891
+    },
+    "compose": {
+      "exit_code": 0,
+      "seconds": 0.25
+    },
+    "frontend": {
+      "exit_code": 0,
+      "seconds": 0.10999999998603016
+    },
+    "migration_upgrade": {
+      "exit_code": 0,
+      "seconds": 3.077999999979511
+    },
+    "migration_drift": {
+      "exit_code": 0,
+      "seconds": 2.937000000034459
+    },
+    "test_counts": {
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "job_id": "83628220-3ebb-4046-8b58-727fd0abdf50",
+  "local_e2e_passed": true,
+  "csv_accepted": 10000,
+  "csv_rejected": 0,
+  "notification_sent_count": 3302,
+  "recipient_allowlist_verified": true,
+  "matching_metrics": {
+    "matching_version": "deterministic-v1",
+    "total_users": 10000,
+    "total_active_products": 3,
+    "naive_candidates": 30000,
+    "sql_candidates": 13302,
+    "advanced_candidates": 13302,
+    "matches_created": 13302,
+    "llm_evaluations": 0,
+    "estimated_llm_calls_avoided": 30000,
+    "reduction_percentage": 55.66,
+    "candidate_pipeline_seconds": 12.62364318400023,
+    "sql_execution_seconds": 0.06787,
+    "matching_seconds": 12.83235951000006
+  },
+  "benchmark": {
+    "job_id": "83628220-3ebb-4046-8b58-727fd0abdf50",
+    "equivalent": true,
+    "pairs": 13302,
+    "naive_seconds": 0.37711609998950735,
+    "sql_execution_and_fetch_seconds": 0.18366390001028776,
+    "optimized_seconds": 0.25844750000396743,
+    "explain_execution_ms": 23.816,
+    "note": "Single measured run on local hardware; Python oracle and SQL fetch timings are not a load test."
+  },
+  "n8n_replay": {
+    "unauthenticated_webhook_status": 403,
+    "job_id": "83628220-3ebb-4046-8b58-727fd0abdf50",
+    "executions": [
+      {
+        "id": 39,
+        "status": "success",
+        "finished": true,
+        "workflow_id": "loan-workflow-b",
+        "started_at": "2026-10-19 12:55:40.065000+00:00",
+        "stopped_at": "2026-10-19 12:55:41.887000+00:00",
+        "nodes": {
+          "Authenticated webhook": [
+            {
+              "status": "success",
+              "milliseconds": 0
+            }
+          ],
+          "Validate job ID": [
+            {
+              "status": "success",
+              "milliseconds": 24
+            }
+          ],
+          "Fetch completed job": [
+            {
+              "status": "success",
+              "milliseconds": 42
+            }
+          ],
+          "Require completed ingestion": [
+            {
+              "status": "success",
+              "milliseconds": 9
+            }
+          ],
+          "SQL structured candidate prefilter": [
+            {
+              "status": "success",
+              "milliseconds": 421
+            }
+          ],
+          "Advanced deterministic rules": [
+            {
+              "status": "success",
+              "milliseconds": 379
+            }
+          ],
+          "Validate and bulk persist": [
+            {
+              "status": "success",
+              "milliseconds": 916
+            }
+          ],
+          "Validate measured metrics": [
+            {
+              "status": "success",
+              "milliseconds": 7
+            }
+          ]
+        }
+      },
+      {
+        "id": 40,
+        "status": "success",
+        "finished": true,
+        "workflow_id": "loan-workflow-c",
+        "started_at": "2026-10-19 12:55:40.246000+00:00",
+        "stopped_at": "2026-10-19 12:55:41.740000+00:00",
+        "nodes": {
+          "Authenticated webhook": [
+            {
+              "status": "success",
+              "milliseconds": 1
+            }
+          ],
+          "Validate job ID": [
+            {
+              "status": "success",
+              "milliseconds": 14
+            }
+          ],
+          "Grouped allowlisted delivery": [
+            {
+              "status": "success",
+              "milliseconds": 529
+            }
+          ],
+          "Delivery metrics": [
+            {
+              "status": "success",
+              "milliseconds": 931
+            }
+          ]
+        }
+      }
+    ],
+    "sent_before": 3302,
+    "sent_after": 3302,
+    "idempotent": true
+  },
+  "healthy_services": [
+    "api",
+    "dispatcher",
+    "ingestion-worker",
+    "mailpit",
+    "minio",
+    "n8n",
+    "postgres"
+  ],
+  "aws_deployed": false,
+  "ses_tested": false,
+  "live_crawling_approved": false,
+  "browser_visual_qa_verified": false
+}

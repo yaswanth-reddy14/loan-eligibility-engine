@@ -1,0 +1,8 @@
+{
+  "health": 200,
+  "dashboard_html": 200,
+  "javascript": 200,
+  "css": 200,
+  "unauthenticated_api": 401,
+  "authenticated_api": 200
+}

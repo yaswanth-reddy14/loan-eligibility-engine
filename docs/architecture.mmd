@@ -1,0 +1,22 @@
+flowchart TD
+ Browser -->|initialize| API[Authenticated FastAPI / API Lambda]
+ API -->|presigned PUT| Browser
+ Browser -->|CSV bytes| Storage[MinIO locally / versioned S3 on AWS]
+ Browser -->|local completion| LocalQueue[PostgreSQL READY job adapter]
+ Storage -->|AWS ObjectCreated only| SQS[SQS ingestion + DLQ]
+ LocalQueue --> Worker[Local ingestion worker]
+ SQS --> Lambda[Ingestion Lambda]
+ Worker --> Domain[Shared streaming ingestion]
+ Lambda --> Domain
+ Domain --> DB[(PostgreSQL)]
+ DB --> Outbox[Outbox dispatcher]
+ Outbox -->|secret authenticated| B[n8n B matching]
+ B --> Match[Private matching API / SQL]
+ Match --> DB
+ Outbox -->|after B audit| C[n8n C notifications]
+ C --> Notify[Private notification API]
+ Notify --> Mail[Mailpit / SES allowlisted test]
+ A[n8n A daily schedule] --> Gate[Source permission review]
+ Gate --> HTTP[Official page HTTP fetch]
+ HTTP --> Extract[Deterministic extraction and validation]
+ Extract --> DB

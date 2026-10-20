@@ -1,0 +1,5 @@
+{
+  "exit_code": 0,
+  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup.ps1",
+  "scope": "Existing local volumes preserved; cached Linux image build and healthy startup"
+}

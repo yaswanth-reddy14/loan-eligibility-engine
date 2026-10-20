@@ -1,0 +1,112 @@
+{
+  "users": [
+    {
+      "total": 10000,
+      "distinct_ids": 10000
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "lender": "Fictional Incomplete Finance",
+      "verification_status": "DEMO_FIXTURE",
+      "criteria_complete": false,
+      "minimum_monthly_income": "20000.00",
+      "minimum_credit_score": null,
+      "age_min": 21,
+      "age_max": null,
+      "employment_requirements": null
+    },
+    {
+      "id": 2,
+      "lender": "Fictional Independent Finance",
+      "verification_status": "DEMO_FIXTURE",
+      "criteria_complete": true,
+      "minimum_monthly_income": "45000.00",
+      "minimum_credit_score": 740,
+      "age_min": 25,
+      "age_max": 65,
+      "employment_requirements": [
+        "SELF_EMPLOYED"
+      ]
+    },
+    {
+      "id": 3,
+      "lender": "Fictional Salaried Finance",
+      "verification_status": "DEMO_FIXTURE",
+      "criteria_complete": true,
+      "minimum_monthly_income": "30000.00",
+      "minimum_credit_score": 700,
+      "age_min": 21,
+      "age_max": 60,
+      "employment_requirements": [
+        "SALARIED"
+      ]
+    }
+  ],
+  "outcomes": [
+    {
+      "product_id": 1,
+      "status": "REVIEW_REQUIRED",
+      "total": 10000
+    },
+    {
+      "product_id": 2,
+      "status": "POSSIBLY_ELIGIBLE",
+      "total": 1116
+    },
+    {
+      "product_id": 3,
+      "status": "POSSIBLY_ELIGIBLE",
+      "total": 2186
+    }
+  ],
+  "notifications": [
+    {
+      "status": "SENT",
+      "total": 3302,
+      "distinct_users": 3302
+    }
+  ],
+  "duplicate_matches": [
+    {
+      "duplicate_groups": 0
+    }
+  ],
+  "destination_collision": [
+    {
+      "collisions": 0
+    }
+  ],
+  "outbox": [
+    {
+      "workflow": "B",
+      "status": "DELIVERED",
+      "attempts": 1
+    },
+    {
+      "workflow": "C",
+      "status": "DELIVERED",
+      "attempts": 0
+    }
+  ],
+  "independent_expected": [
+    {
+      "product_id": 1,
+      "status": "REVIEW_REQUIRED",
+      "total": 10000
+    },
+    {
+      "product_id": 2,
+      "status": "POSSIBLY_ELIGIBLE",
+      "total": 1116
+    },
+    {
+      "product_id": 3,
+      "status": "POSSIBLY_ELIGIBLE",
+      "total": 2186
+    }
+  ],
+  "job_id": "83628220-3ebb-4046-8b58-727fd0abdf50",
+  "csv_sha256": "31e4b00ee000ec0478262bcc629073e76920201b05978a816a3ad4c0133d1ec9"
+}

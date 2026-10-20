@@ -1,0 +1,472 @@
+{
+  "id": "loan-workflow-a",
+  "name": "A \u00b7 Loan product discovery",
+  "active": false,
+  "nodes": [
+    {
+      "id": "daily-schedule",
+      "name": "Daily schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "approved-source-configuration",
+      "name": "Approved source configuration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        230,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const sources=[\n  {\"id\":\"icici\",\"lender\":\"ICICI Bank\",\"url\":\"https://www.icici.bank.in/personal-banking/loans/personal-loan/eligibility\",\"approved\":false,\"review_notes\":\"2026-10-19: eligibility page accessible via research browser; robots and published automation usage restrictions not verified. Disabled pending review.\"},\n  {\"id\":\"hdfc\",\"lender\":\"HDFC Bank\",\"url\":\"https://www.hdfcbank.com/personal/borrow/popular-loans/personal-loan/eligibility-and-documentation\",\"approved\":false,\"review_notes\":\"2026-10-19: page and robots fetch failed in research browser. No permission inference; disabled.\"},\n  {\"id\":\"axis\",\"lender\":\"Axis Bank\",\"url\":\"https://www.axisbank.com/retail/loans/personal-loan/eligibility-documents\",\"approved\":false,\"review_notes\":\"2026-10-19: robots redirected to axis.bank.in and fetch was unavailable. Usage restrictions not verified; disabled.\"}\n]\n;return sources.map(s=>({json:s}));"
+      }
+    },
+    {
+      "id": "permission-review-gate",
+      "name": "Permission review gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "approved",
+              "leftValue": "={{$json.approved}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fetch-official-product-page",
+      "name": "Fetch official product page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        690,
+        -150
+      ],
+      "parameters": {
+        "url": "={{$json.url}}",
+        "options": {
+          "timeout": 15000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "bound-and-normalize-response",
+      "name": "Bound and normalize response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        -150
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const html=$json.data;if(typeof html!=='string'||html.length>2000000)throw new Error('Invalid HTML response');return {json:{html,source_id:$('Permission review gate').item.json.id}};"
+      }
+    },
+    {
+      "id": "extract-validate-deduplicate-upsert",
+      "name": "Extract validate deduplicate upsert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1150,
+        0
+      ],
+      "parameters": {
+        "url": "http://api:8000/internal/discovery/extract",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({...$json,execution_id:$execution.id})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "audit-blocked-source",
+      "name": "Audit blocked source",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        690,
+        0
+      ],
+      "parameters": {
+        "url": "http://api:8000/internal/discovery/audit",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({url:$json.url,detail:$json.review_notes})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "audit-failed-fetch",
+      "name": "Audit failed fetch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        -300
+      ],
+      "parameters": {
+        "url": "http://api:8000/internal/discovery/audit",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({url:$('Permission review gate').item.json.url,status:'FAILED',detail:String($json.error?.message || $json.message || 'Source fetch failed').slice(0,1000)})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "manual-fixture-demo",
+      "name": "Manual fixture demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "fixture-discovery-hook",
+      "name": "Authenticated fixture discovery",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        500
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "loan-a-demo",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "loan-a-demo-webhook",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      }
+    },
+    {
+      "id": "fixture-source-configuration",
+      "name": "Fixture source configuration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        230,
+        300
+      ],
+      "parameters": {
+        "jsCode": "return ['incomplete','independent','salaried'].map(fixture_id=>({json:{fixture_id}}));"
+      }
+    },
+    {
+      "id": "fetch-fictional-source-html",
+      "name": "Fetch fictional source HTML",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "url": "=http://api:8000/internal/discovery/fixture-html/{{$json.fixture_id}}",
+        "method": "GET",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000,
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "normalize-fixture-html",
+      "name": "Normalize fixture HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        690,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "if(typeof $json.data!=='string'||$json.data.length>2000000)throw new Error('Invalid fixture HTML');return {json:{html:$json.data,fixture_id:$('Fixture source configuration').item.json.fixture_id}};"
+      }
+    },
+    {
+      "id": "extract-validate-and-upsert-fictional-products",
+      "name": "Extract validate and upsert fictional products",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        300
+      ],
+      "parameters": {
+        "url": "http://api:8000/internal/discovery/extract",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({...$json,execution_id:$execution.id})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "connections": {
+    "Daily schedule": {
+      "main": [
+        [
+          {
+            "node": "Approved source configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved source configuration": {
+      "main": [
+        [
+          {
+            "node": "Permission review gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch official product page": {
+      "main": [
+        [
+          {
+            "node": "Bound and normalize response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Audit failed fetch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bound and normalize response": {
+      "main": [
+        [
+          {
+            "node": "Extract validate deduplicate upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual fixture demo": {
+      "main": [
+        [
+          {
+            "node": "Fixture source configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture source configuration": {
+      "main": [
+        [
+          {
+            "node": "Fetch fictional source HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch fictional source HTML": {
+      "main": [
+        [
+          {
+            "node": "Normalize fixture HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize fixture HTML": {
+      "main": [
+        [
+          {
+            "node": "Extract validate and upsert fictional products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authenticated fixture discovery": {
+      "main": [
+        [
+          {
+            "node": "Fixture source configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Permission review gate": {
+      "main": [
+        [
+          {
+            "node": "Fetch official product page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Audit blocked source",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {},
+  "tags": []
+}

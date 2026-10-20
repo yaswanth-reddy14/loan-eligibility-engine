@@ -1,0 +1,63 @@
+{
+  "observed_at_utc": "2026-10-19T13:52:57.604673+00:00",
+  "job_id": "a4134ee6-dcfe-445e-bfea-d77d3283af1c",
+  "services": [
+    {
+      "Service": "api",
+      "Image": "loan-engine-app:local",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "dispatcher",
+      "Image": "loan-engine-app:local",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "ingestion-worker",
+      "Image": "loan-engine-app:local",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "mailpit",
+      "Image": "axllent/mailpit:v1.24.1",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "minio",
+      "Image": "loan-engine-minio",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "n8n",
+      "Image": "docker.n8n.io/n8nio/n8n:2.43.6",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "postgres",
+      "Image": "postgres:16.8-alpine",
+      "State": "running",
+      "Health": "healthy"
+    }
+  ],
+  "http_root": 200,
+  "api_unauthenticated": 401,
+  "private_env_path": 404,
+  "missing_workflow_payload": 422,
+  "job_scoped_counts_verified": true,
+  "served_js_matches_source": true,
+  "container_app_sources_match_repository": {
+    "backend/app/main.py": "9f149c5e0938b09be565a1a5f2826307a25ec5c76daafda8b2abf72490dd908a",
+    "backend/app/ingestion.py": "bf94ff6b0e4656eecdbafd1c2dd3682d334169ef5e9f9f87d5fededc253a1678",
+    "backend/app/matching.py": "daded216d36f2c00f59606076e106660b88adbce14ae72168598e8b729687098",
+    "backend/app/notifications.py": "6429717dcbd5d0856036ff766e3bc3f4a0a37d0f2f02095b9bc71b1243937bf1",
+    "frontend/app.js": "7c2228b1cb7e15ef2ab32ca25204d2b4fbdbb9b92a6a25845b110d891a727e83"
+  },
+  "csp": "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' http://localhost:9000; frame-ancestors 'none'",
+  "scope": "HTTP/API/static content and container health/source verification; browser interaction not tested"
+}

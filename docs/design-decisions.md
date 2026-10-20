@@ -1,0 +1,13 @@
+# Design decisions
+
+- **Snapshot users per job:** replaying an identical event is a no-op, while a new upload remains a new historical observation. External IDs are unique inside an ingestion job, not globally.
+- **PostgreSQL bulk inserts:** portable through SQLAlchemy's PostgreSQL dialect, bounded at 500 rows; no per-user INSERT loop. COPY is an optional future throughput optimization.
+- **Single ingestion transaction:** keeps error counts, snapshots and outbox consistent. The 20 MB file cap bounds work. Large production files need staging/checkpoints and load tests before raising that limit.
+- **n8n stage evaluation with backend revalidation:** Workflow B runs SQL in a Postgres node and reusable qualitative/unknown-rule evaluation in a Code node. The backend reruns the structured query and checks every proposed outcome before transactional bulk persistence. This adds query cost but catches drift between extraction and persistence and prevents unsupported candidates. n8n caps a job at 50,000 filtered candidates; partition larger jobs before orchestration. The standalone shared matcher streams candidates without that n8n materialization limit.
+- **No optional LLM:** schema-constrained extraction type exists, but there is no external LLM call path, API key, budget or concurrency controller. Unknown text stays uncertain. No PII leaves for model inference.
+- **Conservative discovery:** accessibility does not establish automation permission. Sources default to disabled, and all auto-extracted live values are UNVERIFIED. Fictional fixtures are operationally distinct.
+- **Email uncertainty:** SMTP/SES cannot participate in the database transaction. Ambiguous outcomes stop for reconciliation rather than risking duplicate submission. This sacrifices automatic transient delivery recovery when acceptance is unknown.
+- **Source-build MinIO:** upstream container pulls failed. A pinned official source release with its matching Go toolchain is built locally. The local development storage service is not a production support recommendation.
+
+- **Immutable matching decision jobs:** a matching version change requires a new upload job. Existing completed jobs retain their original audit; the service rejects silently reusing an old audit under a different code version.
+- **n8n history:** successful pseudonymous execution payloads are retained for 24 hours for runtime evidence. The initial none retention setting left observed execution metadata marked running even after service work finished; final verification uses all retention. PostgreSQL 16 receives compatibility support only from n8n 2.43.6; use PostgreSQL 17+ for fresh production infrastructure.

@@ -1,0 +1,47 @@
+{
+  "sha256": "31e4b00ee000ec0478262bcc629073e76920201b05978a816a3ad4c0133d1ec9",
+  "bytes": 993191,
+  "headers": [
+    "user_id",
+    "name",
+    "email",
+    "monthly_income",
+    "credit_score",
+    "employment_status",
+    "age"
+  ],
+  "rows": 10000,
+  "valid": 10000,
+  "invalid": 0,
+  "duplicate_external_ids": 0,
+  "duplicate_emails": 7368,
+  "missing_by_field": {
+    "user_id": 0,
+    "name": 0,
+    "email": 0,
+    "monthly_income": 0,
+    "credit_score": 0,
+    "employment_status": 0,
+    "age": 0
+  },
+  "normalized_employment": {
+    "SELF_EMPLOYED": 3371,
+    "SALARIED": 3389,
+    "BUSINESS": 3240
+  },
+  "ranges": {
+    "monthly_income": [
+      25000.0,
+      150000.0
+    ],
+    "credit_score": [
+      650.0,
+      800.0
+    ],
+    "age": [
+      22.0,
+      50.0
+    ]
+  },
+  "invalid_reasons": {}
+}

@@ -1,0 +1,5 @@
+[
+  {"id":"icici","lender":"ICICI Bank","url":"https://www.icici.bank.in/personal-banking/loans/personal-loan/eligibility","approved":false,"review_notes":"2026-10-19: eligibility page accessible via research browser; robots and published automation usage restrictions not verified. Disabled pending review."},
+  {"id":"hdfc","lender":"HDFC Bank","url":"https://www.hdfcbank.com/personal/borrow/popular-loans/personal-loan/eligibility-and-documentation","approved":false,"review_notes":"2026-10-19: page and robots fetch failed in research browser. No permission inference; disabled."},
+  {"id":"axis","lender":"Axis Bank","url":"https://www.axisbank.com/retail/loans/personal-loan/eligibility-documents","approved":false,"review_notes":"2026-10-19: robots redirected to axis.bank.in and fetch was unavailable. Usage restrictions not verified; disabled."}
+]

@@ -1,0 +1,30 @@
+{
+  "reviewed_at_utc": "2026-10-19T13:54:56.802475+00:00",
+  "job_id": "a4134ee6-dcfe-445e-bfea-d77d3283af1c",
+  "tests_passed": 69,
+  "users": 10000,
+  "outcomes": {
+    "REVIEW_REQUIRED": 10000,
+    "POSSIBLY_ELIGIBLE": 3302
+  },
+  "notifications_sent_and_captured": 3302,
+  "successful_C_executions": 39,
+  "known_runtime_dependency_findings": 0,
+  "linux_artifact_smoke": "PASS; no AWS service integration",
+  "reviewer_estimated_score": {
+    "n8n": 23,
+    "cloud_architecture": 14,
+    "backend": 26,
+    "documentation_demo": 17,
+    "total": 80
+  },
+  "remaining_external_or_manual_evidence": [
+    "permitted live lender crawling and verified real criteria",
+    "AWS deployment and service integration",
+    "actual SES inbox receipt",
+    "browser interaction and visual QA",
+    "recorded demonstration/screenshots",
+    "remote private submission and CI run"
+  ],
+  "assignment_complete": false
+}

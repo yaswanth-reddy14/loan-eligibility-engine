@@ -1,0 +1,11 @@
+.git
+.env
+.venv
+users.csv
+reports
+__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.serverless
+frontend/dist

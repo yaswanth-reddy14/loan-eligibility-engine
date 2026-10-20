@@ -1,0 +1,13 @@
+# Implemented architecture
+
+The dashboard is served by FastAPI with same-origin API requests. It never sends CSV bytes through the API. Initialization signs a direct PUT to MinIO/S3 and stores the expected SHA-256, size and generated object key. An `If-None-Match: *` condition prevents overwriting the key. Storage versioning and checksum validation protect retries from replacement content.
+
+Local completion marks a job READY after HEAD validation. A polling worker provides a durable local queue adapter. Cloud ObjectCreated messages are delivered through SQS; Lambda reports individual failed messages, with five receives before DLQ redrive. Ingestion locks the job row, streams the object through a bounded-memory temporary disk file, validates encoding/schema and rows, inserts batches of 500, and commits counts and an outbox atomically. Fatal file errors roll back all writes. Restartability is whole-file replay, not partial checkpoints.
+
+The dispatcher locks a due outbox row with SKIP LOCKED and sends a shared-secret-authenticated n8n webhook. HTTP acceptance does not acknowledge completion. The persistent workflow audit is the acknowledgement; retries use exponential backoff, a bounded attempt count, and visible DEAD status. B and C endpoints are idempotent. Multi-worker dispatch can safely skip locks. Production capacity is intentionally bounded; an API auth token identifies one trusted operator, not multiple tenants.
+
+SQL excludes failed structured criteria without equating NULL with satisfied. Remaining uncertainty creates REVIEW_REQUIRED. Only preliminary complete matches can enter notification rendering. Notification events are unique per job/user/version. A send is marked SENDING before contacting a provider, then SENT after receipt of a provider acknowledgement. Failure after a provider call becomes UNKNOWN. Stale SENDING is not auto-retried: an operator must reconcile it against the provider. Exactly-once email submission is not claimed.
+
+Private RDS, a private FastAPI matching/notification service, and self-hosted n8n must share a VPC or a managed private VPN. n8n's administration interface belongs behind an authenticated VPN. Lambda reaches private services through private subnets. No production n8n webhook is exposed to the public internet. Browser-facing API Gateway routes only expose upload/status/dashboard API routes; internal service routes are not registered there.
+
+See `architecture.mmd` and the README diagram. SQL execution plans and benchmark evidence are saved in reports rather than estimated in documentation.

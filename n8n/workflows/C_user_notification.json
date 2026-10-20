@@ -1,0 +1,131 @@
+{
+  "id": "loan-workflow-c",
+  "name": "C \u00b7 User notification",
+  "active": false,
+  "nodes": [
+    {
+      "id": "authenticated-webhook",
+      "name": "Authenticated webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "loan-c",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "loan-c-webhook",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      }
+    },
+    {
+      "id": "validate-job-id",
+      "name": "Validate job ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        230,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const id=$json.body?.job_id;if(typeof id!=='string'||!/^[-0-9a-f]{36}$/.test(id))throw new Error('Invalid job ID');return [{json:{job_id:id}}];"
+      }
+    },
+    {
+      "id": "grouped-allowlisted-delivery",
+      "name": "Grouped allowlisted delivery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        0
+      ],
+      "parameters": {
+        "url": "=http://api:8000/internal/notifications/{{$json.job_id}}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({execution_id:$execution.id})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "delivery-metrics",
+      "name": "Delivery metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        690,
+        0
+      ],
+      "parameters": {
+        "jsCode": "if($json.sent<0||$json.pending<0)throw new Error('Invalid delivery metrics');return $input.all();"
+      }
+    }
+  ],
+  "connections": {
+    "Authenticated webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate job ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate job ID": {
+      "main": [
+        [
+          {
+            "node": "Grouped allowlisted delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Grouped allowlisted delivery": {
+      "main": [
+        [
+          {
+            "node": "Delivery metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {},
+  "tags": []
+}

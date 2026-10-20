@@ -1,0 +1,294 @@
+{
+  "id": "loan-workflow-b",
+  "name": "B \u00b7 User loan matching",
+  "active": false,
+  "nodes": [
+    {
+      "id": "authenticated-webhook",
+      "name": "Authenticated webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "loan-b",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "loan-b-webhook",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      }
+    },
+    {
+      "id": "validate-job-id",
+      "name": "Validate job ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        230,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const id=$json.body?.job_id;if(typeof id!=='string'||!/^[-0-9a-f]{36}$/.test(id))throw new Error('Invalid job ID');return [{json:{job_id:id}}];"
+      }
+    },
+    {
+      "id": "fetch-completed-job",
+      "name": "Fetch completed job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        0
+      ],
+      "parameters": {
+        "url": "=http://api:8000/internal/jobs/{{$json.job_id}}",
+        "method": "GET",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "require-completed-ingestion",
+      "name": "Require completed ingestion",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        690,
+        0
+      ],
+      "parameters": {
+        "jsCode": "if($json.status!=='COMPLETED')throw new Error('Ingestion not complete');return [{json:{job_id:$json.id}}];"
+      }
+    },
+    {
+      "id": "sql-structured-candidate-prefilter",
+      "name": "SQL structured candidate prefilter",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        920,
+        0
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH candidates AS (\nSELECT u.id AS user_id, p.id AS product_id,\n p.criteria_complete, p.verification_status,\n p.lender, p.product_name, p.source_url, p.rate_representation, p.retrieved_at,\n c.minimum_monthly_income, c.minimum_credit_score, c.age_min, c.age_max,\n c.employment_requirements, c.qualitative_requirements\nFROM users u JOIN loan_products p ON p.active = true\nJOIN product_criteria c ON c.product_id = p.id\nWHERE u.job_id = $1\n AND (p.verification_status = 'VERIFIED' OR ($2 AND p.verification_status = 'DEMO_FIXTURE'))\n AND (c.minimum_monthly_income IS NULL OR u.monthly_income >= c.minimum_monthly_income)\n AND (c.minimum_credit_score IS NULL OR u.credit_score >= c.minimum_credit_score)\n AND (c.age_min IS NULL OR u.age >= c.age_min)\n AND (c.age_max IS NULL OR u.age <= c.age_max)\n AND (c.employment_requirements IS NULL OR CAST(c.employment_requirements AS jsonb) = 'null'::jsonb OR CAST(c.employment_requirements AS jsonb) ? u.employment_status)\n LIMIT 50001) SELECT $1::text AS job_id, COALESCE(jsonb_agg(to_jsonb(candidates)), '[]'::jsonb) AS candidates FROM candidates",
+        "options": {
+          "queryReplacement": "={{[$json.job_id, $env.DEMO_MODE === 'true']}}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "loan-domain-postgres",
+          "name": "Loan domain PostgreSQL"
+        }
+      }
+    },
+    {
+      "id": "advanced-deterministic-rules",
+      "name": "Advanced deterministic rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1150,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const envelope = $json;\nconst fields = ['minimum_monthly_income','minimum_credit_score','age_min','age_max','employment_requirements'];\nif (!Array.isArray(envelope.candidates) || envelope.candidates.length > 50000) {\n  throw new Error('Candidate limit exceeded; partition this job before matching');\n}\nconst evaluations = envelope.candidates.map(candidate => {\n  const unknown = fields.filter(field => candidate[field] === null);\n  unknown.push(...(candidate.qualitative_requirements || []));\n  if (!candidate.criteria_complete) unknown.push('Incomplete source criteria');\n  return {user_id:candidate.user_id, product_id:candidate.product_id,\n    status:unknown.length ? 'REVIEW_REQUIRED' : 'POSSIBLY_ELIGIBLE'};\n});\nreturn [{json:{job_id:envelope.job_id, evaluations}}];\n"
+      }
+    },
+    {
+      "id": "validate-and-bulk-persist",
+      "name": "Validate and bulk persist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1380,
+        0
+      ],
+      "parameters": {
+        "url": "=http://api:8000/internal/matching/{{$json.job_id}}",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({evaluations:$json.evaluations,execution_id:$execution.id})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "validate-measured-metrics",
+      "name": "Validate measured metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1610,
+        0
+      ],
+      "parameters": {
+        "jsCode": "if($json.sql_candidates>$json.naive_candidates)throw new Error('Invalid metrics');if($json.llm_evaluations!==0)throw new Error('LLM disabled');return $input.all();"
+      }
+    },
+    {
+      "id": "acknowledge-b-and-queue-c",
+      "name": "Acknowledge B and queue C",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1840,
+        0
+      ],
+      "parameters": {
+        "url": "=http://api:8000/internal/matching/{{$json.job_id}}/complete",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({execution_id:$execution.id})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "connections": {
+    "Authenticated webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate job ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate job ID": {
+      "main": [
+        [
+          {
+            "node": "Fetch completed job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch completed job": {
+      "main": [
+        [
+          {
+            "node": "Require completed ingestion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Require completed ingestion": {
+      "main": [
+        [
+          {
+            "node": "SQL structured candidate prefilter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SQL structured candidate prefilter": {
+      "main": [
+        [
+          {
+            "node": "Advanced deterministic rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Advanced deterministic rules": {
+      "main": [
+        [
+          {
+            "node": "Validate and bulk persist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate and bulk persist": {
+      "main": [
+        [
+          {
+            "node": "Validate measured metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate measured metrics": {
+      "main": [
+        [
+          {
+            "node": "Acknowledge B and queue C",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all"
+  },
+  "pinData": {},
+  "tags": []
+}

@@ -1,0 +1,9 @@
+-r requirements.txt
+pytest==8.3.5
+pytest-asyncio==0.26.0
+ruff==0.11.6
+mypy==1.15.0
+types-beautifulsoup4==4.12.0.20250204
+PyYAML==6.0.2
+types-PyYAML==6.0.12.20250402
+pip-audit==2.9.0

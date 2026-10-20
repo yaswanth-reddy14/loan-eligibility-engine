@@ -1,0 +1,44 @@
+{
+  "ruff": {
+    "exit_code": 0,
+    "seconds": 0.125
+  },
+  "mypy": {
+    "exit_code": 0,
+    "seconds": 1.7969999999622814
+  },
+  "pytest": {
+    "exit_code": 0,
+    "seconds": 52.18700000003446
+  },
+  "workflow_structure": {
+    "exit_code": 0,
+    "seconds": 0.25
+  },
+  "aws_static_config": {
+    "exit_code": 0,
+    "seconds": 0.4529999999795109
+  },
+  "compose": {
+    "exit_code": 0,
+    "seconds": 0.7970000000204891
+  },
+  "frontend": {
+    "exit_code": 0,
+    "seconds": 0.25
+  },
+  "migration_upgrade": {
+    "exit_code": 0,
+    "seconds": 4.23499999998603
+  },
+  "migration_drift": {
+    "exit_code": 0,
+    "seconds": 3.875
+  },
+  "test_counts": {
+    "tests": 69,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

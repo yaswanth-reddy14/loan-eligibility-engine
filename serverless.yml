@@ -1,0 +1,172 @@
+service: loan-eligibility-engine
+frameworkVersion: '4'
+provider:
+  name: aws
+  runtime: python3.12
+  region: ${opt:region, 'ap-south-1'}
+  stage: ${opt:stage, 'dev'}
+  memorySize: 512
+  timeout: 120
+  logRetentionInDays: 14
+  httpApi:
+    cors:
+      allowedOrigins: ['${param:frontendOrigin}']
+      allowedHeaders: [Authorization, Content-Type]
+      allowedMethods: [GET, POST, OPTIONS]
+  environment:
+    DATABASE_URL: ${ssm:/loan/${sls:stage}/database-url}
+    API_TOKEN: ${ssm:/loan/${sls:stage}/api-token}
+    WORKFLOW_SECRET: ${ssm:/loan/${sls:stage}/workflow-secret}
+    S3_BUCKET: !Ref UploadBucket
+    S3_ENDPOINT: ''
+    S3_PUBLIC_ENDPOINT: ''
+    AWS_DEFAULT_REGION: ${aws:region}
+    N8N_URL: ${param:n8nPrivateUrl}
+    EMAIL_DELIVERY_MODE: preview
+    DEMO_MODE: 'false'
+    NOTIFICATION_TEST_INBOX: ${param:testInbox}
+  vpc:
+    securityGroupIds: ['${param:lambdaSecurityGroup}']
+    subnetIds: ['${param:privateSubnetA}', '${param:privateSubnetB}']
+package:
+  artifact: .serverless/loan.zip
+functions:
+  uploadApi:
+    handler: app.main.handler
+    role: !GetAtt UploadRole.Arn
+    timeout: 30
+    reservedConcurrency: 2
+    events:
+      - httpApi: {method: POST, path: /api/uploads}
+      - httpApi: {method: POST, path: '/api/uploads/{job_id}/complete'}
+      - httpApi: {method: GET, path: '/api/jobs/{job_id}'}
+      - httpApi: {method: GET, path: /api/dashboard}
+  ingest:
+    handler: app.ingestion.process_sqs
+    role: !GetAtt IngestionRole.Arn
+    reservedConcurrency: 2
+    events:
+      - sqs:
+          arn: !GetAtt IngestionQueue.Arn
+          batchSize: 1
+          functionResponseType: ReportBatchItemFailures
+          maximumConcurrency: 2
+  dispatch:
+    handler: app.cloud.dispatch
+    role: !GetAtt DispatchRole.Arn
+    timeout: 40
+    reservedConcurrency: 1
+    events:
+      - schedule: rate(1 minute)
+resources:
+  Resources:
+    DeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties: {MessageRetentionPeriod: 1209600, SqsManagedSseEnabled: true}
+    IngestionQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        VisibilityTimeout: 720
+        MessageRetentionPeriod: 345600
+        SqsManagedSseEnabled: true
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+          maxReceiveCount: 5
+    IngestionQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues: [!Ref IngestionQueue]
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal: {Service: s3.amazonaws.com}
+              Action: sqs:SendMessage
+              Resource: !GetAtt IngestionQueue.Arn
+              Condition:
+                StringEquals: {aws:SourceAccount: '${aws:accountId}'}
+                ArnEquals: {aws:SourceArn: 'arn:aws:s3:::loan-${aws:accountId}-${sls:stage}-${aws:region}'}
+    UploadBucket:
+      Type: AWS::S3::Bucket
+      DependsOn: IngestionQueuePolicy
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
+      Properties:
+        BucketName: loan-${aws:accountId}-${sls:stage}-${aws:region}
+        PublicAccessBlockConfiguration: {BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true}
+        VersioningConfiguration: {Status: Enabled}
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedMethods: [PUT]
+              AllowedOrigins: ['${param:frontendOrigin}']
+              AllowedHeaders: [content-type, if-none-match]
+              MaxAge: 300
+        LifecycleConfiguration:
+          Rules:
+            - Id: expire-personal-uploads
+              Status: Enabled
+              ExpirationInDays: 7
+              NoncurrentVersionExpiration: {NoncurrentDays: 1}
+              AbortIncompleteMultipartUpload: {DaysAfterInitiation: 1}
+        NotificationConfiguration:
+          QueueConfigurations:
+            - Event: s3:ObjectCreated:*
+              Queue: !GetAtt IngestionQueue.Arn
+              Filter:
+                S3Key:
+                  Rules: [{Name: prefix, Value: uploads/}, {Name: suffix, Value: .csv}]
+    UploadBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref UploadBucket
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Deny
+              Principal: '*'
+              Action: s3:*
+              Resource: [!GetAtt UploadBucket.Arn, !Sub '${UploadBucket.Arn}/*']
+              Condition: {Bool: {aws:SecureTransport: 'false'}}
+    UploadRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement: [{Effect: Allow, Principal: {Service: lambda.amazonaws.com}, Action: 'sts:AssumeRole'}]
+        ManagedPolicyArns: ['arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole']
+        Policies:
+          - PolicyName: presign-and-head
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action: [s3:PutObject, s3:GetObject, s3:GetObjectVersion]
+                  Resource: !Sub '${UploadBucket.Arn}/uploads/*'
+    IngestionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement: [{Effect: Allow, Principal: {Service: lambda.amazonaws.com}, Action: 'sts:AssumeRole'}]
+        ManagedPolicyArns: ['arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole']
+        Policies:
+          - PolicyName: read-and-consume
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action: [s3:GetObject, s3:GetObjectVersion]
+                  Resource: !Sub '${UploadBucket.Arn}/uploads/*'
+                - Effect: Allow
+                  Action: [sqs:ReceiveMessage, sqs:DeleteMessage, sqs:GetQueueAttributes]
+                  Resource: !GetAtt IngestionQueue.Arn
+    DispatchRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement: [{Effect: Allow, Principal: {Service: lambda.amazonaws.com}, Action: 'sts:AssumeRole'}]
+        ManagedPolicyArns: ['arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole']
