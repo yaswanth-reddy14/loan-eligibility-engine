@@ -18,9 +18,9 @@
     "app/notifications.py",
     "frontend/app.js"
   ],
-  "uncompressed_bytes": 85169134,
-  "artifact_sha256": "f5f3a03c043f5dc9e51f0f45a1beb435fefdfc8174cf03480b10f70484465f1f",
-  "artifact_bytes": 36704572,
+  "uncompressed_bytes": 85169132,
+  "artifact_sha256": "a10b7c1b6cb6a0bc71736d9fdcd6f5cb9cbfce5881680a69fdd44eaeda60a16b",
+  "artifact_bytes": 36705673,
   "runtime_image": "public.ecr.aws/lambda/python:3.12-x86_64",
   "runtime_image_id": "sha256:ab89c120811172d90bf673939b5f3b9fdafd5b20764d67db2039bb15aca54cc3"
 }

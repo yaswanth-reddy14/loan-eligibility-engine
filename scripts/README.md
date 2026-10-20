@@ -21,4 +21,4 @@ Run from the repository root with `$env:PYTHONPATH = 'backend;.'` and the projec
 | `package_lambda.ps1` / `package_lambda.py` | Windows entry point / Linux artifact builder using Docker stdin. These are not duplicate implementations. |
 | `verify_lambda_artifact.py` | Check source freshness/native imports/local ASGI in the AWS Python base container; makes no AWS service calls. |
 
-Full command sequences: [README](../README.md), [demo checklist](../docs/DEMO_CHECKLIST.md), [deployment](../docs/deployment.md). Evidence locations: [reports](../reports/README.md). Preserve database volumes and reconcile ambiguous email events before any manual retry.
+Full command sequences: [README](../README.md), [verification commands](../README.md#verify), [deployment](../docs/deployment.md). Evidence locations: [reports](../reports/README.md). Preserve database volumes and reconcile ambiguous email events before any manual retry.

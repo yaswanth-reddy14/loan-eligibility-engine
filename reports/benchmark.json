@@ -2,10 +2,10 @@
   "job_id": "cf5351fc-21b4-476e-a990-63c7fdb92cf0",
   "equivalent": true,
   "pairs": 13302,
-  "naive_seconds": 0.5706066999700852,
-  "sql_execution_and_fetch_seconds": 0.45206510002026334,
-  "optimized_seconds": 0.5378742000320926,
-  "explain_execution_ms": 47.18,
+  "naive_seconds": 0.9146188999875449,
+  "sql_execution_and_fetch_seconds": 0.5459017000393942,
+  "optimized_seconds": 0.6966250999830663,
+  "explain_execution_ms": 63.009,
   "explain": [
     {
       "Plan": {
@@ -13,12 +13,12 @@
         "Parallel Aware": false,
         "Async Capable": false,
         "Join Type": "Inner",
-        "Startup Cost": 0.43,
-        "Total Cost": 5345.12,
+        "Startup Cost": 113.84,
+        "Total Cost": 6522.53,
         "Plan Rows": 33,
         "Plan Width": 1859,
-        "Actual Startup Time": 0.11,
-        "Actual Total Time": 46.232,
+        "Actual Startup Time": 0.554,
+        "Actual Total Time": 61.099,
         "Actual Rows": 13302,
         "Actual Loops": 1,
         "Inner Unique": false,
@@ -36,24 +36,24 @@
         "Temp Written Blocks": 0,
         "Plans": [
           {
-            "Node Type": "Index Scan",
+            "Node Type": "Bitmap Heap Scan",
             "Parent Relationship": "Outer",
             "Parallel Aware": false,
             "Async Capable": false,
-            "Scan Direction": "Forward",
-            "Index Name": "ix_users_job_id",
             "Relation Name": "users",
             "Alias": "u",
-            "Startup Cost": 0.29,
-            "Total Cost": 451.29,
-            "Plan Rows": 10000,
+            "Startup Cost": 113.7,
+            "Total Cost": 1634.55,
+            "Plan Rows": 9988,
             "Plan Width": 28,
-            "Actual Startup Time": 0.038,
-            "Actual Total Time": 2.955,
+            "Actual Startup Time": 0.452,
+            "Actual Total Time": 3.362,
             "Actual Rows": 10000,
             "Actual Loops": 1,
-            "Index Cond": "((job_id)::text = 'cf5351fc-21b4-476e-a990-63c7fdb92cf0'::text)",
+            "Recheck Cond": "((job_id)::text = 'cf5351fc-21b4-476e-a990-63c7fdb92cf0'::text)",
             "Rows Removed by Index Recheck": 0,
+            "Exact Heap Blocks": 233,
+            "Lossy Heap Blocks": 0,
             "Shared Hit Blocks": 242,
             "Shared Read Blocks": 0,
             "Shared Dirtied Blocks": 0,
@@ -63,7 +63,35 @@
             "Local Dirtied Blocks": 0,
             "Local Written Blocks": 0,
             "Temp Read Blocks": 0,
-            "Temp Written Blocks": 0
+            "Temp Written Blocks": 0,
+            "Plans": [
+              {
+                "Node Type": "Bitmap Index Scan",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Index Name": "ix_users_job_id",
+                "Startup Cost": 0.0,
+                "Total Cost": 111.2,
+                "Plan Rows": 9988,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.409,
+                "Actual Total Time": 0.41,
+                "Actual Rows": 10000,
+                "Actual Loops": 1,
+                "Index Cond": "((job_id)::text = 'cf5351fc-21b4-476e-a990-63c7fdb92cf0'::text)",
+                "Shared Hit Blocks": 9,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0
+              }
+            ]
           },
           {
             "Node Type": "Materialize",
@@ -99,8 +127,8 @@
                 "Total Cost": 18.8,
                 "Plan Rows": 13,
                 "Plan Width": 1855,
-                "Actual Startup Time": 0.034,
-                "Actual Total Time": 0.044,
+                "Actual Startup Time": 0.057,
+                "Actual Total Time": 0.066,
                 "Actual Rows": 3,
                 "Actual Loops": 1,
                 "Inner Unique": true,
@@ -126,8 +154,8 @@
                     "Total Cost": 10.6,
                     "Plan Rows": 1,
                     "Plan Width": 1761,
-                    "Actual Startup Time": 0.01,
-                    "Actual Total Time": 0.013,
+                    "Actual Startup Time": 0.012,
+                    "Actual Total Time": 0.014,
                     "Actual Rows": 3,
                     "Actual Loops": 1,
                     "Filter": "(active AND (((verification_status)::text = 'VERIFIED'::text) OR ((verification_status)::text = 'DEMO_FIXTURE'::text)))",
@@ -156,8 +184,8 @@
                     "Total Cost": 8.17,
                     "Plan Rows": 1,
                     "Plan Width": 98,
-                    "Actual Startup Time": 0.008,
-                    "Actual Total Time": 0.008,
+                    "Actual Startup Time": 0.015,
+                    "Actual Total Time": 0.015,
                     "Actual Rows": 1,
                     "Actual Loops": 3,
                     "Index Cond": "(product_id = p.id)",
@@ -191,37 +219,37 @@
         "Temp Read Blocks": 0,
         "Temp Written Blocks": 0
       },
-      "Planning Time": 0.38,
+      "Planning Time": 0.565,
       "Triggers": [],
-      "Execution Time": 47.18
+      "Execution Time": 63.009
     }
   ],
   "iterations": 5,
   "samples": [
     {
-      "naive_seconds": 0.4634317000163719,
-      "optimized_seconds": 0.3907402000040747,
-      "sql_execution_and_fetch_seconds": 0.3021346000023186
+      "naive_seconds": 0.9146188999875449,
+      "optimized_seconds": 0.6966250999830663,
+      "sql_execution_and_fetch_seconds": 0.5145566999563016
     },
     {
-      "naive_seconds": 0.65527970000403,
-      "optimized_seconds": 0.7738898000097834,
-      "sql_execution_and_fetch_seconds": 0.6627890000236221
+      "naive_seconds": 0.7264075999846682,
+      "optimized_seconds": 0.5790321999811567,
+      "sql_execution_and_fetch_seconds": 0.45659660000819713
     },
     {
-      "naive_seconds": 0.5706066999700852,
-      "optimized_seconds": 0.5378742000320926,
-      "sql_execution_and_fetch_seconds": 0.45206510002026334
+      "naive_seconds": 1.1549460000242107,
+      "optimized_seconds": 0.6803252999670804,
+      "sql_execution_and_fetch_seconds": 0.5524851999944076
     },
     {
-      "naive_seconds": 0.5219940000097267,
-      "optimized_seconds": 0.8469797999714501,
-      "sql_execution_and_fetch_seconds": 0.6684878999949433
+      "naive_seconds": 1.1337518999935128,
+      "optimized_seconds": 0.7221047999919392,
+      "sql_execution_and_fetch_seconds": 0.6150539999944158
     },
     {
-      "naive_seconds": 0.5716127000050619,
-      "optimized_seconds": 0.5305400000070222,
-      "sql_execution_and_fetch_seconds": 0.39563769998494536
+      "naive_seconds": 0.7258632999728434,
+      "optimized_seconds": 0.719970700039994,
+      "sql_execution_and_fetch_seconds": 0.5459017000393942
     }
   ],
   "note": "One warmup, five default measured runs; median local Python comparison excludes n8n, persistence and delivery. Production revalidates candidates in a second SQL pass. Not a load test or whole-pipeline speedup."

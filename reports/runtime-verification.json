@@ -1,0 +1,142 @@
+{
+  "observed_at_utc": "2026-10-20T04:16:42.997482+00:00",
+  "scope": "Local HTTP/container/database checks and bounded reachable-local-history scan. Existing ingested job re-observed; no new production upload or SES send. No AWS deployment or browser interaction.",
+  "services": [
+    {
+      "Service": "api",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "dispatcher",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "ingestion-worker",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "mailpit",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "minio",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "n8n",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "postgres",
+      "State": "running",
+      "Health": "healthy"
+    }
+  ],
+  "private_env_http_status": 404,
+  "served_assets_match_source": true,
+  "container_source_files_equal": 19,
+  "local_database_owner": {
+    "rolname": "loan",
+    "rolsuper": true
+  },
+  "n8n_reader_user_columns": [
+    {
+      "column_name": "id",
+      "selectable": true
+    },
+    {
+      "column_name": "job_id",
+      "selectable": true
+    },
+    {
+      "column_name": "external_id",
+      "selectable": false
+    },
+    {
+      "column_name": "name",
+      "selectable": false
+    },
+    {
+      "column_name": "email",
+      "selectable": false
+    },
+    {
+      "column_name": "monthly_income",
+      "selectable": true
+    },
+    {
+      "column_name": "credit_score",
+      "selectable": true
+    },
+    {
+      "column_name": "employment_status",
+      "selectable": true
+    },
+    {
+      "column_name": "age",
+      "selectable": true
+    },
+    {
+      "column_name": "source_row",
+      "selectable": false
+    },
+    {
+      "column_name": "created_at",
+      "selectable": false
+    }
+  ],
+  "n8n_email_and_name_select_denied": true,
+  "n8n_credential_references": [
+    {
+      "id": "loan-domain-postgres",
+      "type": "postgres"
+    },
+    {
+      "id": "loan-internal-header",
+      "type": "httpHeaderAuth"
+    }
+  ],
+  "history_security_review": {
+    "commits_scanned": 2,
+    "unique_blobs_scanned": 154,
+    "findings": [],
+    "supplied_csv_email_matches_in_history": 0,
+    "supplied_csv_email_matches_in_worktree": 0,
+    "scope": "Known configured secret values and AWS/GitHub token/private-key patterns across all reachable local commits; exact supplied CSV email comparison. Not a universal secret or PII scanner. Public local MinIO username excluded from secret values."
+  },
+  "reproduce_commands": [
+    "docker compose ps --format json",
+    "python scripts/run_checks.py",
+    "python scripts/smoke_api.py",
+    "python scripts/demo.py --job-id cf5351fc-21b4-476e-a990-63c7fdb92cf0",
+    "python scripts/recruiter_verify.py",
+    "python scripts/verify_workflow_replay.py",
+    "python scripts/benchmark.py --job-id cf5351fc-21b4-476e-a990-63c7fdb92cf0",
+    "python scripts/audit_secrets.py",
+    "python -m pip_audit -r backend/requirements.txt --format json --output reports/dependency-audit-after.json",
+    "python scripts/package_lambda.py",
+    "python scripts/verify_lambda_artifact.py"
+  ],
+  "privilege_check_sql": [
+    "SELECT rolname,rolsuper FROM pg_roles WHERE rolname=current_user",
+    "SELECT has_column_privilege('loan_n8n_reader','users','email','SELECT'), has_column_privilege('loan_n8n_reader','users','name','SELECT')",
+    "BEGIN; SET LOCAL ROLE loan_n8n_reader; SELECT id,job_id,monthly_income,credit_score,employment_status,age FROM users LIMIT 1; ROLLBACK;",
+    "BEGIN; SET LOCAL ROLE loan_n8n_reader; SELECT email,name FROM users LIMIT 1; -- Expected permission denied; ROLLBACK;"
+  ],
+  "documentation_checks": {
+    "markdown_files": 11,
+    "local_links_and_anchors_checked": 24,
+    "explicit_report_paths_checked": 2,
+    "broken_links": [],
+    "external_links": "Not fetched in this repository cleanup"
+  },
+  "unchanged_source_configuration_tests_and_private_inputs": 71,
+  "verification_completed_at_utc": "2026-10-20T04:19:21.186549+00:00",
+  "benchmark_run_conditions": "Measured after regression and workflow observation/replay completed; local Lambda container smoke may have overlapped. Five measured samples after one warmup; no whole-pipeline or concurrent-load claim."
+}

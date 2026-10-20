@@ -11,13 +11,6 @@
   },
   "products": [
     {
-      "id": 2,
-      "lender": "Fictional Independent Finance",
-      "verification_status": "DEMO_FIXTURE",
-      "source_url": "https://example.org/demo/independent",
-      "criteria_complete": true
-    },
-    {
       "id": 3,
       "lender": "Fictional Salaried Finance",
       "verification_status": "DEMO_FIXTURE",
@@ -30,6 +23,13 @@
       "verification_status": "DEMO_FIXTURE",
       "source_url": "https://example.org/demo/incomplete",
       "criteria_complete": false
+    },
+    {
+      "id": 2,
+      "lender": "Fictional Independent Finance",
+      "verification_status": "DEMO_FIXTURE",
+      "source_url": "https://example.org/demo/independent",
+      "criteria_complete": true
     }
   ],
   "per_product_outcomes": [
@@ -94,44 +94,6 @@
   },
   "scope": "Independent Cartesian oracle uses current product criteria; historical comparisons require unchanged criteria or retained match snapshots. No production matching function called.",
   "n8n_executions": [
-    {
-      "id": 85,
-      "status": "success",
-      "finished": true,
-      "workflow_id": "loan-workflow-a",
-      "nodes": {
-        "Authenticated fixture discovery": [
-          {
-            "status": "success",
-            "milliseconds": 2
-          }
-        ],
-        "Fixture source configuration": [
-          {
-            "status": "success",
-            "milliseconds": 101
-          }
-        ],
-        "Fetch fictional source HTML": [
-          {
-            "status": "success",
-            "milliseconds": 101
-          }
-        ],
-        "Normalize fixture HTML": [
-          {
-            "status": "success",
-            "milliseconds": 44
-          }
-        ],
-        "Extract validate and upsert fictional products": [
-          {
-            "status": "success",
-            "milliseconds": 489
-          }
-        ]
-      }
-    },
     {
       "id": 86,
       "status": "success",
@@ -222,6 +184,44 @@
           {
             "status": "success",
             "milliseconds": 28
+          }
+        ]
+      }
+    },
+    {
+      "id": 266,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-a",
+      "nodes": {
+        "Authenticated fixture discovery": [
+          {
+            "status": "success",
+            "milliseconds": 19
+          }
+        ],
+        "Fixture source configuration": [
+          {
+            "status": "success",
+            "milliseconds": 602
+          }
+        ],
+        "Fetch fictional source HTML": [
+          {
+            "status": "success",
+            "milliseconds": 429
+          }
+        ],
+        "Normalize fixture HTML": [
+          {
+            "status": "success",
+            "milliseconds": 214
+          }
+        ],
+        "Extract validate and upsert fictional products": [
+          {
+            "status": "success",
+            "milliseconds": 805
           }
         ]
       }

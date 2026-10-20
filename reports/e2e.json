@@ -14,11 +14,11 @@
       "workflow": "C",
       "status": "COMPLETED",
       "metrics": {
-        "last_batch_sent": 2,
+        "last_batch_sent": 0,
         "pending": 0,
         "uncertain": 0,
         "sent_total": 3302,
-        "n8n_execution_id": "120"
+        "n8n_execution_id": "123"
       },
       "created_at": "2026-10-20T03:26:15.328830Z"
     },
@@ -51,25 +51,25 @@
   },
   "discovery": [
     {
-      "source_url": "https://example.org/demo/independent",
-      "detail": "Schema validated; source evidence retained; n8n execution 85"
-    },
-    {
       "source_url": "https://example.org/demo/salaried",
-      "detail": "Schema validated; source evidence retained; n8n execution 85"
+      "detail": "Schema validated; source evidence retained; n8n execution 266"
     },
     {
       "source_url": "https://example.org/demo/incomplete",
-      "detail": "Schema validated; source evidence retained; n8n execution 85"
+      "detail": "Schema validated; source evidence retained; n8n execution 266"
+    },
+    {
+      "source_url": "https://example.org/demo/independent",
+      "detail": "Schema validated; source evidence retained; n8n execution 266"
     }
   ],
-  "mailpit_total": 9922,
+  "mailpit_total": 15000,
   "job_messages_verified": 3302,
   "sample_mailpit_id": "j2fDkvwnPdFGGHRBrjRaW7",
   "recipient_allowlist_verified": true,
-  "elapsed_seconds": 260.64100000000326,
+  "elapsed_seconds": 11.84399999998277,
   "elapsed_scope": "This observer invocation, including any repeated A discovery; not original upload duration",
   "upload_to_last_sent_seconds": 252.407919,
   "delivery": "Mailpit SMTP capture; AWS SES NOT tested",
-  "upload_surface": "HTTP API (browser interaction not tested)"
+  "upload_surface": "existing job"
 }

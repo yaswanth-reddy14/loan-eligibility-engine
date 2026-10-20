@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="10.633" timestamp="2026-10-19T18:05:33.880368+05:30" hostname="DESKTOP-RC0HRI9"><testcase classname="backend.tests.test_mailpit" name="test_actual_mailpit_preview" time="10.115" /></testsuite></testsuites>

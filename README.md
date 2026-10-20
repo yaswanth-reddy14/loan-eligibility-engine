@@ -4,7 +4,17 @@ Validate a user CSV, evaluate possible loan eligibility, and trace discovery, ma
 
 The demonstrated local dataset contains 10,000 distinct users, 13,302 outcomes and 3,302 controlled Mailpit captures. SQL reduces the candidate set from 30,000 to 13,302 (55.66%). Local timing varies; this is not a whole-pipeline speedup claim. Products are fictional fixtures. AWS deployment, actual SES receipt, permitted live crawling, browser interaction and recorded demo evidence remain outstanding.
 
-See the [cleanup report](docs/POST_CLEANUP_REPORT.md) for current verification and Git state, and the [recruiter audit](docs/FINAL_RECRUITER_AUDIT.md) for the dated evaluation and remaining requirements.
+Technical documentation:
+
+- [Architecture](docs/architecture.md) and [Mermaid diagram source](docs/architecture.mmd)
+- [Deployment](docs/deployment.md)
+- [Design decisions](docs/design-decisions.md)
+- [Matching optimization](docs/optimization.md)
+- [Security](docs/security.md)
+- [Lender source review](docs/source-review.md)
+- [Troubleshooting](docs/troubleshooting.md)
+
+See the [verification evidence index](reports/README.md) for report producers and evidence limitations.
 
 ## Architecture
 
@@ -71,7 +81,7 @@ All demo destinations come from `NOTIFICATION_TEST_INBOX`, never CSV addresses. 
 
 [AWS deployment](docs/deployment.md) covers private RDS/n8n connectivity, IAM, costs, Linux packaging and SES prerequisites. The Lambda zip has a local base-container smoke test; the Serverless stack has not been deployed. No zero-cost RDS guarantee is made.
 
-Use the [demonstration checklist](docs/DEMO_CHECKLIST.md) and [eight-minute spoken script](docs/demo-script.md). Capture real screenshots and video before adding a recording link; none is invented here. The [delivery mapping](docs/DELIVERY_AUDIT.md) summarizes requirement coverage.
+For a demonstration, follow the local setup and verification commands above. Show a dashboard CSV upload, the corresponding n8n A/B/C executions, job-filtered database results, the measured matching comparison and a received message in Mailpit. **Demo video: pending recording; no link available yet.** Capture real screenshots and video before adding a recording link.
 
 Prepare a **private** GitHub repository only after reviewing staged files. Do not commit `.env`, `users.csv`, local volumes, caches or artifacts. Publication and invitations require approval. The requested collaborators are `ujjwalkala-clickpe`, `HarshSrivastav-Dailype`, `ManishBiswal-clickpe`, and `tushar-clickpe`.
 

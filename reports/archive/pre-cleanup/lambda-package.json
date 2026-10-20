@@ -1,7 +1,0 @@
-{
-  "build_image": "public.ecr.aws/sam/build-python3.12:latest-x86_64",
-  "build_image_id": "sha256:6fcfdfc2cb86f20f1a9b62b86fcf376e2be6959e5c3f561fc6cc31931a091e0b",
-  "sha256": "0db59c593f0b364b814716e50c9a99607275a297aceec48f77f057a9533cc854",
-  "bytes": 36701532,
-  "scope": "Linux artifact build only; runtime smoke and AWS deployment are separate"
-}

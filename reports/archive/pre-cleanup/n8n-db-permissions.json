@@ -1,6 +1,0 @@
-{
-  "role": "loan_n8n_reader",
-  "candidate_sql_count": 13302,
-  "email_and_name_select_denied": true,
-  "scope": "Existing local database role; no credentials exported"
-}

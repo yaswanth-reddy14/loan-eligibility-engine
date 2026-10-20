@@ -3,12 +3,12 @@
   "job_id": "cf5351fc-21b4-476e-a990-63c7fdb92cf0",
   "executions": [
     {
-      "id": 122,
+      "id": 267,
       "status": "success",
       "finished": true,
       "workflow_id": "loan-workflow-b",
-      "started_at": "2026-10-20 03:31:07.102000+00:00",
-      "stopped_at": "2026-10-20 03:31:10.832000+00:00",
+      "started_at": "2026-10-20 04:15:59.142000+00:00",
+      "stopped_at": "2026-10-20 04:16:10.411000+00:00",
       "nodes": {
         "Authenticated webhook": [
           {
@@ -19,89 +19,89 @@
         "Validate job ID": [
           {
             "status": "success",
-            "milliseconds": 31
+            "milliseconds": 78
           }
         ],
         "Fetch completed job": [
           {
             "status": "success",
-            "milliseconds": 66
+            "milliseconds": 173
           }
         ],
         "Require completed ingestion": [
           {
             "status": "success",
-            "milliseconds": 20
+            "milliseconds": 43
           }
         ],
         "SQL structured candidate prefilter": [
           {
             "status": "success",
-            "milliseconds": 880
+            "milliseconds": 4002
           }
         ],
         "Advanced deterministic rules": [
           {
             "status": "success",
-            "milliseconds": 871
+            "milliseconds": 2479
           }
         ],
         "Validate and bulk persist": [
           {
             "status": "success",
-            "milliseconds": 1792
+            "milliseconds": 4319
           }
         ],
         "Validate measured metrics": [
           {
             "status": "success",
-            "milliseconds": 10
+            "milliseconds": 61
           }
         ],
         "Acknowledge B and queue C": [
           {
             "status": "success",
-            "milliseconds": 25
+            "milliseconds": 44
           }
         ]
       }
     },
     {
-      "id": 123,
+      "id": 268,
       "status": "success",
       "finished": true,
       "workflow_id": "loan-workflow-c",
-      "started_at": "2026-10-20 03:31:07.417000+00:00",
-      "stopped_at": "2026-10-20 03:31:07.958000+00:00",
+      "started_at": "2026-10-20 04:15:59.967000+00:00",
+      "stopped_at": "2026-10-20 04:16:01.369000+00:00",
       "nodes": {
         "Authenticated webhook": [
           {
             "status": "success",
-            "milliseconds": 1
+            "milliseconds": 0
           }
         ],
         "Validate job ID": [
           {
             "status": "success",
-            "milliseconds": 22
+            "milliseconds": 56
           }
         ],
         "Grouped allowlisted delivery": [
           {
             "status": "success",
-            "milliseconds": 457
+            "milliseconds": 1238
           }
         ],
         "Delivery metrics": [
           {
             "status": "success",
-            "milliseconds": 28
+            "milliseconds": 24
           }
         ]
       }
     }
   ],
-  "sent_before": 9906,
-  "sent_after": 9906,
+  "sent_before": 19812,
+  "sent_after": 19812,
   "idempotent": true
 }
