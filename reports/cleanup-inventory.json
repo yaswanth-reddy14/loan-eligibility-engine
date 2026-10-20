@@ -1,0 +1,1135 @@
+{
+  "scope": "Git-visible baseline, every source/configuration/evidence file; no private file content",
+  "files": [
+    {
+      "path": ".dockerignore",
+      "bytes": 110,
+      "lines": 11
+    },
+    {
+      "path": ".env.example",
+      "bytes": 815,
+      "lines": 20
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 1551,
+      "lines": 39
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 208,
+      "lines": 19
+    },
+    {
+      "path": "Makefile",
+      "bytes": 244,
+      "lines": 12
+    },
+    {
+      "path": "README.md",
+      "bytes": 8852,
+      "lines": 110
+    },
+    {
+      "path": "alembic.ini",
+      "bytes": 66,
+      "lines": 3
+    },
+    {
+      "path": "backend/Dockerfile",
+      "bytes": 476,
+      "lines": 14
+    },
+    {
+      "path": "backend/app/__init__.py",
+      "bytes": 0,
+      "lines": 0,
+      "functions": [],
+      "imports": []
+    },
+    {
+      "path": "backend/app/cloud.py",
+      "bytes": 240,
+      "lines": 10,
+      "functions": [
+        "dispatch"
+      ],
+      "imports": [
+        "app.worker",
+        "typing"
+      ]
+    },
+    {
+      "path": "backend/app/config.py",
+      "bytes": 1501,
+      "lines": 39,
+      "functions": [
+        "settings",
+        "safe_mode"
+      ],
+      "imports": [
+        "email_validator",
+        "functools",
+        "pydantic",
+        "pydantic_settings"
+      ]
+    },
+    {
+      "path": "backend/app/db.py",
+      "bytes": 492,
+      "lines": 23,
+      "functions": [
+        "engine",
+        "session"
+      ],
+      "imports": [
+        "app.config",
+        "collections.abc",
+        "functools",
+        "sqlalchemy",
+        "sqlalchemy.orm"
+      ]
+    },
+    {
+      "path": "backend/app/discovery.py",
+      "bytes": 8662,
+      "lines": 216,
+      "functions": [
+        "extract",
+        "store_extraction",
+        "seed_fixtures",
+        "fixture_html",
+        "employment_values",
+        "supported"
+      ],
+      "imports": [
+        "app.db",
+        "app.models",
+        "bs4",
+        "json",
+        "pathlib",
+        "pydantic",
+        "re",
+        "sqlalchemy.dialects.postgresql",
+        "sqlalchemy.orm",
+        "typing"
+      ]
+    },
+    {
+      "path": "backend/app/ingestion.py",
+      "bytes": 6778,
+      "lines": 145,
+      "functions": [
+        "ingest",
+        "process_sqs",
+        "flush"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "app.models",
+        "app.storage",
+        "app.validation",
+        "contextlib",
+        "hashlib",
+        "io",
+        "json",
+        "logging",
+        "sqlalchemy",
+        "sqlalchemy.dialects.postgresql",
+        "sqlalchemy.orm",
+        "tempfile",
+        "typing",
+        "urllib.parse"
+      ]
+    },
+    {
+      "path": "backend/app/main.py",
+      "bytes": 13364,
+      "lines": 346,
+      "functions": [
+        "authenticated",
+        "internal",
+        "invalid",
+        "security_headers",
+        "health",
+        "upload_init",
+        "complete",
+        "job_status",
+        "dashboard",
+        "internal_job",
+        "products_api",
+        "matches_api",
+        "metrics_api",
+        "matching",
+        "matching_complete",
+        "notifications",
+        "fixtures",
+        "discovery",
+        "get_fixture_html",
+        "start_demo_discovery",
+        "crawl_audit",
+        "index"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "app.discovery",
+        "app.matching",
+        "app.models",
+        "app.notifications",
+        "app.storage",
+        "collections",
+        "fastapi",
+        "fastapi.responses",
+        "fastapi.staticfiles",
+        "httpx",
+        "json",
+        "mangum",
+        "pathlib",
+        "pydantic",
+        "secrets",
+        "sqlalchemy",
+        "sqlalchemy.orm",
+        "time",
+        "typing",
+        "urllib.parse"
+      ]
+    },
+    {
+      "path": "backend/app/matching.py",
+      "bytes": 10414,
+      "lines": 241,
+      "functions": [
+        "advanced",
+        "run_matching",
+        "complete_matching",
+        "naive_pairs",
+        "fetched"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "app.models",
+        "sqlalchemy",
+        "sqlalchemy.dialects.postgresql",
+        "sqlalchemy.orm",
+        "time",
+        "typing"
+      ]
+    },
+    {
+      "path": "backend/app/models.py",
+      "bytes": 8109,
+      "lines": 181,
+      "functions": [
+        "uid",
+        "now"
+      ],
+      "imports": [
+        "datetime",
+        "decimal",
+        "sqlalchemy",
+        "sqlalchemy.orm",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "path": "backend/app/notifications.py",
+      "bytes": 8254,
+      "lines": 197,
+      "functions": [
+        "destination",
+        "render",
+        "deliver",
+        "notify"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "app.matching",
+        "app.models",
+        "boto3",
+        "botocore.config",
+        "email.message",
+        "html",
+        "smtplib",
+        "sqlalchemy",
+        "sqlalchemy.dialects.postgresql",
+        "sqlalchemy.orm",
+        "typing"
+      ]
+    },
+    {
+      "path": "backend/app/storage.py",
+      "bytes": 619,
+      "lines": 24,
+      "functions": [
+        "s3"
+      ],
+      "imports": [
+        "app.config",
+        "boto3",
+        "botocore.config",
+        "functools",
+        "typing"
+      ]
+    },
+    {
+      "path": "backend/app/validation.py",
+      "bytes": 2644,
+      "lines": 67,
+      "functions": [
+        "rows",
+        "safe_csv_cell",
+        "email_valid",
+        "employment"
+      ],
+      "imports": [
+        "collections.abc",
+        "csv",
+        "decimal",
+        "email_validator",
+        "pydantic",
+        "typing"
+      ]
+    },
+    {
+      "path": "backend/app/worker.py",
+      "bytes": 4077,
+      "lines": 111,
+      "functions": [
+        "ingestion_tick",
+        "dispatch_tick",
+        "request_stop",
+        "main"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "app.ingestion",
+        "app.models",
+        "argparse",
+        "datetime",
+        "httpx",
+        "logging",
+        "signal",
+        "sqlalchemy",
+        "sqlalchemy.orm",
+        "threading",
+        "typing"
+      ]
+    },
+    {
+      "path": "backend/requirements-dev.txt",
+      "bytes": 182,
+      "lines": 9
+    },
+    {
+      "path": "backend/requirements.txt",
+      "bytes": 240,
+      "lines": 13
+    },
+    {
+      "path": "backend/tests/conftest.py",
+      "bytes": 1965,
+      "lines": 58,
+      "functions": [
+        "pg",
+        "input_csv"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "app.models",
+        "collections.abc",
+        "dotenv",
+        "os",
+        "pathlib",
+        "pytest",
+        "sqlalchemy",
+        "sqlalchemy.orm",
+        "uuid"
+      ]
+    },
+    {
+      "path": "backend/tests/test_integration.py",
+      "bytes": 9200,
+      "lines": 275,
+      "functions": [
+        "register",
+        "csv_bytes",
+        "product",
+        "test_10000_ingestion_and_idempotency",
+        "test_duplicate_upload_preserves_history",
+        "test_duplicate_ids_invalid_rows",
+        "test_atomic_bad_encoding_and_checksum",
+        "test_worker_retry_records_failure_without_detached_access",
+        "test_sqs_retry_partial_failure",
+        "test_matching_boundaries_equivalence_idempotency",
+        "test_unknown_criteria_review_and_no_email",
+        "test_unknown_employment_remains_review_candidate",
+        "test_workflow_evaluation_cannot_override_rules",
+        "test_notifications_deduplicate_and_never_sample_destination",
+        "test_ambiguous_send_not_retried",
+        "test_allowlist_collision_with_source_is_rejected",
+        "test_api_auth_and_dashboard",
+        "test_migration_schema_tables",
+        "deliver"
+      ],
+      "imports": [
+        "app.config",
+        "app.ingestion",
+        "app.main",
+        "app.matching",
+        "app.models",
+        "app.notifications",
+        "app.validation",
+        "app.worker",
+        "backend.tests.test_validation",
+        "botocore.response",
+        "csv",
+        "decimal",
+        "fastapi.testclient",
+        "hashlib",
+        "io",
+        "json",
+        "pytest",
+        "sqlalchemy",
+        "unittest.mock"
+      ]
+    },
+    {
+      "path": "backend/tests/test_mailpit.py",
+      "bytes": 1269,
+      "lines": 41,
+      "functions": [
+        "test_actual_mailpit_preview"
+      ],
+      "imports": [
+        "app.config",
+        "app.notifications",
+        "httpx",
+        "os",
+        "pytest",
+        "uuid"
+      ]
+    },
+    {
+      "path": "backend/tests/test_migrations.py",
+      "bytes": 1564,
+      "lines": 41,
+      "functions": [
+        "test_cold_migration_upgrade_downgrade_and_reupgrade"
+      ],
+      "imports": [
+        "alembic",
+        "alembic.config",
+        "os",
+        "pytest",
+        "sqlalchemy",
+        "uuid"
+      ]
+    },
+    {
+      "path": "backend/tests/test_review_regressions.py",
+      "bytes": 8660,
+      "lines": 219,
+      "functions": [
+        "test_c_not_queued_until_final_b_ack",
+        "test_http_matching_requires_orchestrated_payload",
+        "test_stale_running_audit_cannot_reset_retry_budget",
+        "test_real_new_progress_resets_retry_budget",
+        "test_notification_uses_matched_product_snapshot",
+        "test_actual_checksum_mismatch_rolls_back",
+        "test_duplicate_row_error_has_exact_source_line",
+        "test_concurrent_notification_batches_finish_consistently",
+        "test_upload_csp_uses_configured_object_storage_origin",
+        "test_sqs_failure_state_and_successful_recovery",
+        "test_sqs_final_receive_marks_registered_job_failed",
+        "capture"
+      ],
+      "imports": [
+        "app.config",
+        "app.ingestion",
+        "app.main",
+        "app.matching",
+        "app.models",
+        "app.notifications",
+        "app.storage",
+        "app.worker",
+        "backend.tests.test_integration",
+        "backend.tests.test_validation",
+        "concurrent.futures",
+        "fastapi.testclient",
+        "httpx",
+        "json",
+        "pytest",
+        "sqlalchemy",
+        "threading",
+        "unittest.mock",
+        "urllib.parse"
+      ]
+    },
+    {
+      "path": "backend/tests/test_validation.py",
+      "bytes": 7168,
+      "lines": 222,
+      "functions": [
+        "valid_row",
+        "test_invalid_rows",
+        "test_headers",
+        "test_malformed_rows",
+        "test_employment_normalization",
+        "test_export_injection",
+        "test_complete_and_unknown",
+        "test_email_safety",
+        "test_workflow_exports",
+        "test_fixture_extraction",
+        "test_unsupported_extraction",
+        "test_unsafe_delivery_mode",
+        "test_supplied_csv_inspection",
+        "test_sources_fail_closed",
+        "test_n8n_code_matches_shared_rules",
+        "test_explicit_labels_extract_age_employment_and_rate",
+        "test_explicit_rate_interval_and_unlabelled_marketing"
+      ],
+      "imports": [
+        "app.config",
+        "app.discovery",
+        "app.matching",
+        "app.notifications",
+        "app.validation",
+        "io",
+        "json",
+        "pathlib",
+        "pydantic",
+        "pytest",
+        "scripts.validate_workflows",
+        "shutil",
+        "subprocess"
+      ]
+    },
+    {
+      "path": "docker-compose.yml",
+      "bytes": 4447,
+      "lines": 142
+    },
+    {
+      "path": "docs/DELIVERY_AUDIT.md",
+      "bytes": 10513,
+      "lines": 65
+    },
+    {
+      "path": "docs/DEMO_CHECKLIST.md",
+      "bytes": 8307,
+      "lines": 84
+    },
+    {
+      "path": "docs/FINAL_RECRUITER_AUDIT.md",
+      "bytes": 26411,
+      "lines": 150
+    },
+    {
+      "path": "docs/IMPLEMENTATION_STATUS.md",
+      "bytes": 6934,
+      "lines": 60
+    },
+    {
+      "path": "docs/architecture.md",
+      "bytes": 2574,
+      "lines": 13
+    },
+    {
+      "path": "docs/architecture.mmd",
+      "bytes": 945,
+      "lines": 22
+    },
+    {
+      "path": "docs/demo-script.md",
+      "bytes": 7650,
+      "lines": 95
+    },
+    {
+      "path": "docs/deployment.md",
+      "bytes": 5307,
+      "lines": 24
+    },
+    {
+      "path": "docs/design-decisions.md",
+      "bytes": 2692,
+      "lines": 13
+    },
+    {
+      "path": "docs/optimization.md",
+      "bytes": 3112,
+      "lines": 13
+    },
+    {
+      "path": "docs/security.md",
+      "bytes": 2877,
+      "lines": 11
+    },
+    {
+      "path": "docs/source-review.md",
+      "bytes": 2268,
+      "lines": 15
+    },
+    {
+      "path": "docs/troubleshooting.md",
+      "bytes": 2184,
+      "lines": 14
+    },
+    {
+      "path": "frontend/app.js",
+      "bytes": 6580,
+      "lines": 44
+    },
+    {
+      "path": "frontend/build.mjs",
+      "bytes": 432,
+      "lines": 6
+    },
+    {
+      "path": "frontend/index.html",
+      "bytes": 2317,
+      "lines": 9
+    },
+    {
+      "path": "frontend/package.json",
+      "bytes": 103,
+      "lines": 1
+    },
+    {
+      "path": "frontend/style.css",
+      "bytes": 2433,
+      "lines": 1
+    },
+    {
+      "path": "infrastructure/minio.Dockerfile",
+      "bytes": 454,
+      "lines": 10
+    },
+    {
+      "path": "infrastructure/sql/init.sql",
+      "bytes": 48,
+      "lines": 2
+    },
+    {
+      "path": "migrations/__init__.py",
+      "bytes": 0,
+      "lines": 0,
+      "functions": [],
+      "imports": []
+    },
+    {
+      "path": "migrations/env.py",
+      "bytes": 488,
+      "lines": 13,
+      "functions": [],
+      "imports": [
+        "alembic",
+        "app.db",
+        "app.models"
+      ]
+    },
+    {
+      "path": "migrations/schema_v1.py",
+      "bytes": 8210,
+      "lines": 180,
+      "functions": [
+        "uid",
+        "now"
+      ],
+      "imports": [
+        "datetime",
+        "decimal",
+        "sqlalchemy",
+        "sqlalchemy.orm",
+        "typing",
+        "uuid"
+      ]
+    },
+    {
+      "path": "migrations/versions/0001_initial.py",
+      "bytes": 376,
+      "lines": 18,
+      "functions": [
+        "upgrade",
+        "downgrade"
+      ],
+      "imports": [
+        "alembic",
+        "migrations.schema_v1"
+      ]
+    },
+    {
+      "path": "migrations/versions/0002_outbox_progress.py",
+      "bytes": 446,
+      "lines": 19,
+      "functions": [
+        "upgrade",
+        "downgrade"
+      ],
+      "imports": [
+        "alembic",
+        "sqlalchemy"
+      ]
+    },
+    {
+      "path": "n8n/README.md",
+      "bytes": 4471,
+      "lines": 21
+    },
+    {
+      "path": "n8n/advanced_rules.js",
+      "bytes": 772,
+      "lines": 13
+    },
+    {
+      "path": "n8n/fixtures/incomplete.html",
+      "bytes": 715,
+      "lines": 1
+    },
+    {
+      "path": "n8n/fixtures/independent.html",
+      "bytes": 835,
+      "lines": 1
+    },
+    {
+      "path": "n8n/fixtures/salaried.html",
+      "bytes": 819,
+      "lines": 1
+    },
+    {
+      "path": "n8n/sources.json",
+      "bytes": 858,
+      "lines": 5
+    },
+    {
+      "path": "n8n/workflows/A_loan_product_discovery.json",
+      "bytes": 13048,
+      "lines": 472
+    },
+    {
+      "path": "n8n/workflows/B_user_loan_matching.json",
+      "bytes": 9249,
+      "lines": 294
+    },
+    {
+      "path": "n8n/workflows/C_user_notification.json",
+      "bytes": 3221,
+      "lines": 131
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 496,
+      "lines": 17
+    },
+    {
+      "path": "reports/api-smoke.json",
+      "bytes": 144,
+      "lines": 8
+    },
+    {
+      "path": "reports/benchmark-under-load.json",
+      "bytes": 9126,
+      "lines": 229
+    },
+    {
+      "path": "reports/benchmark.json",
+      "bytes": 9143,
+      "lines": 229
+    },
+    {
+      "path": "reports/checks.json",
+      "bytes": 781,
+      "lines": 44
+    },
+    {
+      "path": "reports/csv-inspection.json",
+      "bytes": 866,
+      "lines": 47
+    },
+    {
+      "path": "reports/delivery.json",
+      "bytes": 4968,
+      "lines": 191
+    },
+    {
+      "path": "reports/dependency-audit-after.json",
+      "bytes": 2262,
+      "lines": 1
+    },
+    {
+      "path": "reports/dependency-audit-before.json",
+      "bytes": 12104,
+      "lines": 1
+    },
+    {
+      "path": "reports/e2e.json",
+      "bytes": 2895,
+      "lines": 76
+    },
+    {
+      "path": "reports/final-review.json",
+      "bytes": 939,
+      "lines": 30
+    },
+    {
+      "path": "reports/lambda-artifact.json",
+      "bytes": 888,
+      "lines": 26
+    },
+    {
+      "path": "reports/lambda-package.json",
+      "bytes": 361,
+      "lines": 7
+    },
+    {
+      "path": "reports/n8n-A-summary.json",
+      "bytes": 764,
+      "lines": 34
+    },
+    {
+      "path": "reports/n8n-db-permissions.json",
+      "bytes": 176,
+      "lines": 6
+    },
+    {
+      "path": "reports/n8n-replay.json",
+      "bytes": 2580,
+      "lines": 107
+    },
+    {
+      "path": "reports/pytest-mailpit.xml",
+      "bytes": 332,
+      "lines": 1
+    },
+    {
+      "path": "reports/pytest-postgres.xml",
+      "bytes": 5816,
+      "lines": 1
+    },
+    {
+      "path": "reports/pytest-unit.xml",
+      "bytes": 11153,
+      "lines": 1
+    },
+    {
+      "path": "reports/pytest.xml",
+      "bytes": 8331,
+      "lines": 1
+    },
+    {
+      "path": "reports/recruiter-verification.json",
+      "bytes": 10233,
+      "lines": 453
+    },
+    {
+      "path": "reports/reviewer-baseline.json",
+      "bytes": 2390,
+      "lines": 112
+    },
+    {
+      "path": "reports/reviewer-regression-1.xml",
+      "bytes": 7831,
+      "lines": 1
+    },
+    {
+      "path": "reports/reviewer-secrets.json",
+      "bytes": 331,
+      "lines": 13
+    },
+    {
+      "path": "reports/reviewer-smoke.json",
+      "bytes": 2103,
+      "lines": 63
+    },
+    {
+      "path": "reports/secrets-audit.json",
+      "bytes": 206,
+      "lines": 6
+    },
+    {
+      "path": "reports/services.json",
+      "bytes": 15226,
+      "lines": 247
+    },
+    {
+      "path": "reports/setup-reviewed.json",
+      "bytes": 203,
+      "lines": 5
+    },
+    {
+      "path": "reports/workflow-import.json",
+      "bytes": 990,
+      "lines": 26
+    },
+    {
+      "path": "scripts/audit_secrets.py",
+      "bytes": 1530,
+      "lines": 44,
+      "functions": [
+        "main"
+      ],
+      "imports": [
+        "dotenv",
+        "json",
+        "pathlib",
+        "subprocess"
+      ]
+    },
+    {
+      "path": "scripts/benchmark.py",
+      "bytes": 3392,
+      "lines": 79,
+      "functions": [
+        "main"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "app.matching",
+        "app.models",
+        "argparse",
+        "json",
+        "pathlib",
+        "sqlalchemy",
+        "sqlalchemy.orm",
+        "statistics",
+        "time"
+      ]
+    },
+    {
+      "path": "scripts/demo.py",
+      "bytes": 5868,
+      "lines": 125,
+      "functions": [
+        "main"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "app.models",
+        "argparse",
+        "hashlib",
+        "httpx",
+        "json",
+        "pathlib",
+        "sqlalchemy",
+        "sqlalchemy.orm",
+        "time"
+      ]
+    },
+    {
+      "path": "scripts/generate_workflows.py",
+      "bytes": 10836,
+      "lines": 323,
+      "functions": [
+        "node",
+        "http",
+        "webhook",
+        "workflow",
+        "chain",
+        "main"
+      ],
+      "imports": [
+        "app.matching",
+        "json",
+        "pathlib"
+      ]
+    },
+    {
+      "path": "scripts/import_n8n.py",
+      "bytes": 3058,
+      "lines": 79,
+      "functions": [
+        "command",
+        "main"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "json",
+        "psycopg",
+        "secrets",
+        "subprocess"
+      ]
+    },
+    {
+      "path": "scripts/init_storage.py",
+      "bytes": 1004,
+      "lines": 32,
+      "functions": [
+        "main"
+      ],
+      "imports": [
+        "app.config",
+        "app.storage",
+        "time"
+      ]
+    },
+    {
+      "path": "scripts/inspect_csv.py",
+      "bytes": 2103,
+      "lines": 59,
+      "functions": [
+        "main"
+      ],
+      "imports": [
+        "app.validation",
+        "collections",
+        "csv",
+        "hashlib",
+        "json",
+        "pathlib"
+      ]
+    },
+    {
+      "path": "scripts/package_lambda.ps1",
+      "bytes": 297,
+      "lines": 5
+    },
+    {
+      "path": "scripts/package_lambda.py",
+      "bytes": 2206,
+      "lines": 58,
+      "functions": [
+        "main"
+      ],
+      "imports": [
+        "hashlib",
+        "json",
+        "pathlib",
+        "subprocess"
+      ]
+    },
+    {
+      "path": "scripts/recruiter_verify.py",
+      "bytes": 10601,
+      "lines": 237,
+      "functions": [
+        "main",
+        "ref",
+        "ref"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "app.models",
+        "argparse",
+        "collections",
+        "hashlib",
+        "json",
+        "pathlib",
+        "sqlalchemy",
+        "sqlalchemy.orm",
+        "time"
+      ]
+    },
+    {
+      "path": "scripts/run_checks.py",
+      "bytes": 2157,
+      "lines": 49,
+      "functions": [
+        "main"
+      ],
+      "imports": [
+        "dotenv",
+        "json",
+        "os",
+        "pathlib",
+        "subprocess",
+        "sys",
+        "time",
+        "xml.etree.ElementTree"
+      ]
+    },
+    {
+      "path": "scripts/setup.ps1",
+      "bytes": 1764,
+      "lines": 30
+    },
+    {
+      "path": "scripts/smoke_api.py",
+      "bytes": 1049,
+      "lines": 28,
+      "functions": [
+        "main"
+      ],
+      "imports": [
+        "app.config",
+        "httpx",
+        "json",
+        "pathlib"
+      ]
+    },
+    {
+      "path": "scripts/validate_config.py",
+      "bytes": 1128,
+      "lines": 36,
+      "functions": [
+        "intrinsic",
+        "main"
+      ],
+      "imports": [
+        "pathlib",
+        "yaml"
+      ]
+    },
+    {
+      "path": "scripts/validate_workflows.py",
+      "bytes": 1121,
+      "lines": 31,
+      "functions": [
+        "validate",
+        "main"
+      ],
+      "imports": [
+        "json",
+        "pathlib"
+      ]
+    },
+    {
+      "path": "scripts/verify_lambda_artifact.py",
+      "bytes": 3722,
+      "lines": 86,
+      "functions": [
+        "main"
+      ],
+      "imports": [
+        "hashlib",
+        "json",
+        "pathlib",
+        "subprocess",
+        "zipfile"
+      ]
+    },
+    {
+      "path": "scripts/verify_workflow_replay.py",
+      "bytes": 3946,
+      "lines": 94,
+      "functions": [
+        "main",
+        "ref"
+      ],
+      "imports": [
+        "app.config",
+        "app.db",
+        "httpx",
+        "json",
+        "pathlib",
+        "sqlalchemy",
+        "time"
+      ]
+    },
+    {
+      "path": "serverless.yml",
+      "bytes": 6447,
+      "lines": 172
+    }
+  ]
+}

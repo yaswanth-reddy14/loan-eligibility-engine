@@ -1,7 +1,7 @@
 {
-  "job_id": "a4134ee6-dcfe-445e-bfea-d77d3283af1c",
+  "job_id": "cf5351fc-21b4-476e-a990-63c7fdb92cf0",
   "ingestion": {
-    "id": "a4134ee6-dcfe-445e-bfea-d77d3283af1c",
+    "id": "cf5351fc-21b4-476e-a990-63c7fdb92cf0",
     "status": "COMPLETED",
     "accepted": 10000,
     "rejected": 0,
@@ -9,22 +9,22 @@
   },
   "audits": {
     "C": {
-      "id": "3fec5c14-7773-446a-93dc-6751993ece37",
-      "job_id": "a4134ee6-dcfe-445e-bfea-d77d3283af1c",
+      "id": "4c47a9f5-d484-43e9-8c63-b0a93afbcfb0",
+      "job_id": "cf5351fc-21b4-476e-a990-63c7fdb92cf0",
       "workflow": "C",
       "status": "COMPLETED",
       "metrics": {
-        "last_batch_sent": 70,
+        "last_batch_sent": 2,
         "pending": 0,
         "uncertain": 0,
         "sent_total": 3302,
-        "n8n_execution_id": "75"
+        "n8n_execution_id": "120"
       },
-      "created_at": "2026-10-19T13:29:07.210637Z"
+      "created_at": "2026-10-20T03:26:15.328830Z"
     },
     "B": {
-      "id": "b9039106-adb7-47cb-a880-35f014fdff7d",
-      "job_id": "a4134ee6-dcfe-445e-bfea-d77d3283af1c",
+      "id": "bd702fd6-fe2f-4ecc-b788-cc4827f2b258",
+      "job_id": "cf5351fc-21b4-476e-a990-63c7fdb92cf0",
       "workflow": "B",
       "status": "COMPLETED",
       "metrics": {
@@ -38,39 +38,38 @@
         "llm_evaluations": 0,
         "estimated_llm_calls_avoided": 30000,
         "reduction_percentage": 55.66,
-        "candidate_pipeline_seconds": 7.896298055999978,
-        "sql_execution_seconds": 0.32802041399372683,
+        "candidate_pipeline_seconds": 9.232665674000032,
+        "sql_execution_seconds": 0.3987259390002009,
         "sql_timing_scope": "backend cursor execute plus fetch, including client transfer; excludes persistence",
         "sql_prefilter_passes": 2,
-        "matching_seconds": 8.335850030000074,
-        "persisted_by_n8n_execution_id": "43",
-        "completed_by_n8n_execution_id": "43"
+        "matching_seconds": 10.175161328000058,
+        "persisted_by_n8n_execution_id": "86",
+        "completed_by_n8n_execution_id": "86"
       },
-      "created_at": "2026-10-19T13:29:00.406246Z"
+      "created_at": "2026-10-20T03:26:08.152757Z"
     }
   },
   "discovery": [
     {
-      "source_url": "https://example.org/demo/incomplete",
-      "detail": "Schema validated; source evidence retained; n8n execution 71"
+      "source_url": "https://example.org/demo/independent",
+      "detail": "Schema validated; source evidence retained; n8n execution 85"
     },
     {
       "source_url": "https://example.org/demo/salaried",
-      "detail": "Schema validated; source evidence retained; n8n execution 71"
+      "detail": "Schema validated; source evidence retained; n8n execution 85"
     },
     {
-      "source_url": "https://example.org/demo/independent",
-      "detail": "Schema validated; source evidence retained; n8n execution 71"
+      "source_url": "https://example.org/demo/incomplete",
+      "detail": "Schema validated; source evidence retained; n8n execution 85"
     }
   ],
-  "mailpit_total": 6613,
+  "mailpit_total": 9922,
   "job_messages_verified": 3302,
-  "sample_mailpit_id": "J5hMXaYVGeh7XPnieGuboN",
+  "sample_mailpit_id": "j2fDkvwnPdFGGHRBrjRaW7",
   "recipient_allowlist_verified": true,
-  "elapsed_seconds": 89.68800000002375,
+  "elapsed_seconds": 260.64100000000326,
+  "elapsed_scope": "This observer invocation, including any repeated A discovery; not original upload duration",
+  "upload_to_last_sent_seconds": 252.407919,
   "delivery": "Mailpit SMTP capture; AWS SES NOT tested",
-  "upload_surface": "existing job",
-  "upload_to_last_sent_seconds": 307.530607,
-  "elapsed_scope": "Resumed observer invocation, including repeated A discovery; not original upload duration",
-  "observation_note": "Initial HTTP upload created this job; its status observer encountered RemoteProtocolError. A later --job-id observation verified completion without another upload. API remained running, OOMKilled=false; cause not established."
+  "upload_surface": "HTTP API (browser interaction not tested)"
 }

@@ -1,6 +1,6 @@
 # Eight-minute demonstration script
 
-Target length: 8:00, including the on-screen actions and pauses. Rehearse at a calm speaking pace; end each segment at its time marker. Bracketed directions are not spoken. Keep a completed, explicitly labeled rehearsal job available if the fresh pipeline takes longer. The run is local, fixture based, and uses Mailpit. Do not say the assignment is fully complete.
+Target: 8:00 including on-screen actions. Bracketed cues are not spoken. Use the current job ID and measured reports, and rehearse to the section markers. Keep a completed, clearly labeled rehearsal job available if the new pipeline takes longer. This is a local fixture/Mailpit demonstration; do not claim full assignment completion.
 
 ## 0:00-0:50 | What the system proves
 
@@ -74,11 +74,11 @@ This is Mailpit SMTP capture. It is not AWS SES delivery or proof of a real exte
 
 [Show benchmark samples and medians, then checks.json and JUnit.]
 
-The benchmark uses this data and these products, with one warmup, five measured repetitions, retained samples and pair/status equality checks. Two local measurement batches showed variable timing, including one with a slower optimized median. These are the actual results on this machine; they exclude n8n, persistence and email delivery.
+The benchmark uses this data and these products, with one warmup, five measured repetitions, retained samples and pair/status equality checks. Two local measurement batches showed variable timing, including one with a slower optimized median. These results measure Python matching on this machine. They exclude n8n, persistence and email delivery.
 
 The independent verifier is separate from the shared production matching function.
 
-The latest check report gives the exact test count and confirms linting, types, workflow structure, frontend syntax/build, Compose configuration and migrations. Dependency scanning found seven advisories in the earlier Starlette version. The upgraded runtime requirements now have no known findings in that scan. This is not a container vulnerability audit.
+Here is the current check report: the test count, linting, type checks, workflow structure, frontend build, Compose configuration and migrations. Dependency scanning found seven advisories in the earlier Starlette version. The upgraded runtime requirements now have no known findings in that scan. This is not a container vulnerability audit.
 
 ## 7:05-8:00 | AWS readiness and candid limitations
 

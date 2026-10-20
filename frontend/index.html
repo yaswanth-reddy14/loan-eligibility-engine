@@ -1,9 +1,91 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Loan Eligibility Engine</title><link rel="stylesheet" href="/assets/style.css"></head>
-<body><main><header><div><span class="eyebrow">ENGINEERING WORKBENCH</span><h1>Loan Eligibility Engine</h1><p>Trace every upload, rule, and preliminary match.</p></div><span id="mode" class="badge">Connecting</span></header>
-<section class="access"><label for="token">Local API token</label><input type="password" id="token" autocomplete="off" placeholder="Paste API_TOKEN from your local .env"><button id="connect">Connect</button><small>Kept in memory for this page only.</small></section>
-<div id="error" role="alert" hidden></div><div class="columns"><section><h2>01 / Import users</h2><label class="drop" id="drop" for="file"><strong>Drop users.csv here</strong><span>or click to select · UTF-8 · maximum 20 MB</span><input id="file" type="file" accept=".csv,text/csv"></label><pre id="preview">Select a file to preview its headers and size.</pre><button id="upload" disabled>Validate &amp; upload</button><progress id="progress" max="100" value="0"></progress><p id="upload-status" aria-live="polite"></p></section>
-<section><h2>02 / Pipeline state</h2><label for="job-filter">Job to inspect</label><select id="job-filter"><option value="">All recent jobs</option></select><div id="counts" class="cards"></div><p class="muted">Possible eligibility is preliminary. Review outcomes do not qualify for notifications. Approval requires lender verification.</p></section></div>
-<section><h2>Ingestion jobs</h2><div class="scroll"><table><thead><tr><th>Job</th><th>Status</th><th>Accepted</th><th>Rejected</th><th>Issue</th></tr></thead><tbody id="jobs"></tbody></table></div></section>
-<section><h2>Product evidence</h2><button id="discover">Run n8n A: fictional discovery</button><p id="discovery-status" aria-live="polite"></p><div id="discovery-runs"></div><div id="products" class="products"></div></section>
-<section><h2>Optimization &amp; workflow history</h2><div id="workflows"></div></section><footer>DEMO products are fictional. Mailpit captures preview messages. No sample address is a delivery destination.</footer></main><script src="/assets/app.js" defer></script></body></html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Loan Eligibility Engine</title>
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <span class="eyebrow">ENGINEERING WORKBENCH</span>
+          <h1>Loan Eligibility Engine</h1>
+          <p>Trace every upload, rule, and preliminary match.</p>
+        </div>
+        <span id="mode" class="badge">Connecting</span>
+      </header>
+      <section class="access">
+        <label for="token">Local API token</label
+        ><input
+          type="password"
+          id="token"
+          autocomplete="off"
+          placeholder="Paste API_TOKEN from your local .env"
+        /><button id="connect">Connect</button
+        ><small>Kept in memory for this page only.</small>
+      </section>
+      <div id="error" role="alert" hidden></div>
+      <div class="columns">
+        <section>
+          <h2>01 / Import users</h2>
+          <label class="drop" id="drop" for="file"
+            ><strong>Drop users.csv here</strong
+            ><span>or click to select · UTF-8 · maximum 20 MB</span
+            ><input id="file" type="file" accept=".csv,text/csv"
+          /></label>
+          <pre id="preview">Select a file to preview its headers and size.</pre>
+          <button id="upload" disabled>Validate &amp; upload</button
+          ><progress id="progress" max="100" value="0"></progress>
+          <p id="upload-status" aria-live="polite"></p>
+        </section>
+        <section>
+          <h2>02 / Pipeline state</h2>
+          <label for="job-filter">Job to inspect</label
+          ><select id="job-filter">
+            <option value="">All recent jobs</option>
+          </select>
+          <div id="counts" class="cards"></div>
+          <p class="muted">
+            Possible eligibility is preliminary. Review outcomes do not qualify
+            for notifications. Approval requires lender verification.
+          </p>
+        </section>
+      </div>
+      <section>
+        <h2>Ingestion jobs</h2>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Job</th>
+                <th>Status</th>
+                <th>Accepted</th>
+                <th>Rejected</th>
+                <th>Issue</th>
+              </tr>
+            </thead>
+            <tbody id="jobs"></tbody>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h2>Product evidence</h2>
+        <button id="discover">Run n8n A: fictional discovery</button>
+        <p id="discovery-status" aria-live="polite"></p>
+        <div id="discovery-runs"></div>
+        <div id="products" class="products"></div>
+      </section>
+      <section>
+        <h2>Optimization &amp; workflow history</h2>
+        <div id="workflows"></div>
+      </section>
+      <footer>
+        DEMO products are fictional. Mailpit captures preview messages. No
+        sample address is a delivery destination.
+      </footer>
+    </main>
+    <script src="/assets/app.js" defer></script>
+  </body>
+</html>

@@ -1,11 +1,11 @@
 {
-  "job_id": "a4134ee6-dcfe-445e-bfea-d77d3283af1c",
+  "job_id": "cf5351fc-21b4-476e-a990-63c7fdb92cf0",
   "equivalent": true,
   "pairs": 13302,
-  "naive_seconds": 1.3226525000063702,
-  "sql_execution_and_fetch_seconds": 0.6460769000113942,
-  "optimized_seconds": 0.8696627999888733,
-  "explain_execution_ms": 52.788,
+  "naive_seconds": 0.5706066999700852,
+  "sql_execution_and_fetch_seconds": 0.45206510002026334,
+  "optimized_seconds": 0.5378742000320926,
+  "explain_execution_ms": 47.18,
   "explain": [
     {
       "Plan": {
@@ -17,14 +17,14 @@
         "Total Cost": 5345.12,
         "Plan Rows": 33,
         "Plan Width": 1859,
-        "Actual Startup Time": 0.206,
-        "Actual Total Time": 51.598,
+        "Actual Startup Time": 0.11,
+        "Actual Total Time": 46.232,
         "Actual Rows": 13302,
         "Actual Loops": 1,
         "Inner Unique": false,
         "Join Filter": "(((c.minimum_monthly_income IS NULL) OR (u.monthly_income >= c.minimum_monthly_income)) AND ((c.minimum_credit_score IS NULL) OR (u.credit_score >= c.minimum_credit_score)) AND ((c.age_min IS NULL) OR (u.age >= c.age_min)) AND ((c.age_max IS NULL) OR (u.age <= c.age_max)) AND ((c.employment_requirements IS NULL) OR ((c.employment_requirements)::jsonb = 'null'::jsonb) OR ((c.employment_requirements)::jsonb ? (u.employment_status)::text)))",
         "Rows Removed by Join Filter": 16698,
-        "Shared Hit Blocks": 251,
+        "Shared Hit Blocks": 249,
         "Shared Read Blocks": 0,
         "Shared Dirtied Blocks": 0,
         "Shared Written Blocks": 0,
@@ -48,13 +48,13 @@
             "Total Cost": 451.29,
             "Plan Rows": 10000,
             "Plan Width": 28,
-            "Actual Startup Time": 0.094,
-            "Actual Total Time": 3.625,
+            "Actual Startup Time": 0.038,
+            "Actual Total Time": 2.955,
             "Actual Rows": 10000,
             "Actual Loops": 1,
-            "Index Cond": "((job_id)::text = 'a4134ee6-dcfe-445e-bfea-d77d3283af1c'::text)",
+            "Index Cond": "((job_id)::text = 'cf5351fc-21b4-476e-a990-63c7fdb92cf0'::text)",
             "Rows Removed by Index Recheck": 0,
-            "Shared Hit Blocks": 244,
+            "Shared Hit Blocks": 242,
             "Shared Read Blocks": 0,
             "Shared Dirtied Blocks": 0,
             "Shared Written Blocks": 0,
@@ -99,8 +99,8 @@
                 "Total Cost": 18.8,
                 "Plan Rows": 13,
                 "Plan Width": 1855,
-                "Actual Startup Time": 0.066,
-                "Actual Total Time": 0.096,
+                "Actual Startup Time": 0.034,
+                "Actual Total Time": 0.044,
                 "Actual Rows": 3,
                 "Actual Loops": 1,
                 "Inner Unique": true,
@@ -126,8 +126,8 @@
                     "Total Cost": 10.6,
                     "Plan Rows": 1,
                     "Plan Width": 1761,
-                    "Actual Startup Time": 0.018,
-                    "Actual Total Time": 0.026,
+                    "Actual Startup Time": 0.01,
+                    "Actual Total Time": 0.013,
                     "Actual Rows": 3,
                     "Actual Loops": 1,
                     "Filter": "(active AND (((verification_status)::text = 'VERIFIED'::text) OR ((verification_status)::text = 'DEMO_FIXTURE'::text)))",
@@ -156,8 +156,8 @@
                     "Total Cost": 8.17,
                     "Plan Rows": 1,
                     "Plan Width": 98,
-                    "Actual Startup Time": 0.017,
-                    "Actual Total Time": 0.017,
+                    "Actual Startup Time": 0.008,
+                    "Actual Total Time": 0.008,
                     "Actual Rows": 1,
                     "Actual Loops": 3,
                     "Index Cond": "(product_id = p.id)",
@@ -191,39 +191,38 @@
         "Temp Read Blocks": 0,
         "Temp Written Blocks": 0
       },
-      "Planning Time": 0.673,
+      "Planning Time": 0.38,
       "Triggers": [],
-      "Execution Time": 52.788
+      "Execution Time": 47.18
     }
   ],
   "iterations": 5,
   "samples": [
     {
-      "naive_seconds": 1.3226525000063702,
-      "optimized_seconds": 0.8696627999888733,
-      "sql_execution_and_fetch_seconds": 0.6374743999913335
+      "naive_seconds": 0.4634317000163719,
+      "optimized_seconds": 0.3907402000040747,
+      "sql_execution_and_fetch_seconds": 0.3021346000023186
     },
     {
-      "naive_seconds": 1.6471166999544948,
-      "optimized_seconds": 1.6176816999795847,
-      "sql_execution_and_fetch_seconds": 1.222011499979999
+      "naive_seconds": 0.65527970000403,
+      "optimized_seconds": 0.7738898000097834,
+      "sql_execution_and_fetch_seconds": 0.6627890000236221
     },
     {
-      "naive_seconds": 1.4981782999821007,
-      "optimized_seconds": 0.9325109999626875,
-      "sql_execution_and_fetch_seconds": 0.758593899954576
+      "naive_seconds": 0.5706066999700852,
+      "optimized_seconds": 0.5378742000320926,
+      "sql_execution_and_fetch_seconds": 0.45206510002026334
     },
     {
-      "naive_seconds": 1.028829200018663,
-      "optimized_seconds": 0.8097245000535622,
-      "sql_execution_and_fetch_seconds": 0.6460769000113942
+      "naive_seconds": 0.5219940000097267,
+      "optimized_seconds": 0.8469797999714501,
+      "sql_execution_and_fetch_seconds": 0.6684878999949433
     },
     {
-      "naive_seconds": 0.8746275000157766,
-      "optimized_seconds": 0.7755318999988958,
-      "sql_execution_and_fetch_seconds": 0.5636639000149444
+      "naive_seconds": 0.5716127000050619,
+      "optimized_seconds": 0.5305400000070222,
+      "sql_execution_and_fetch_seconds": 0.39563769998494536
     }
   ],
-  "note": "One warmup, five default measured runs; median local Python comparison excludes n8n, persistence and delivery. Production revalidates candidates in a second SQL pass. Not a load test or whole-pipeline speedup.",
-  "run_conditions": "Follow-up local measurement overlapped application image rebuild/startup. Not an isolated benchmark."
+  "note": "One warmup, five default measured runs; median local Python comparison excludes n8n, persistence and delivery. Production revalidates candidates in a second SQL pass. Not a load test or whole-pipeline speedup."
 }

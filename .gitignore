@@ -17,3 +17,7 @@ reports/private/
 reports/*.txt
 *.log
 dist/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/

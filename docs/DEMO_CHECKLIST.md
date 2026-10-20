@@ -33,7 +33,7 @@ $env:RUN_MAILPIT_TEST = '1'
 
 `demo.py` triggers real A discovery, uploads over the API, waits for B/C, and matches every SENT event's Message-ID to a Mailpit capture. It also checks one HTML/plain-text body and every job-specific destination. It is **not browser interaction evidence**. Mailpit retains at most 15,000 messages: archive evidence or increase the local retention before many repeated 3,302-message demos; never delete messages while a verification is running.
 
-- [ ] Read `reports/final-review.json` for the latest review status and remaining manual/external gates.
+- [ ] Read `docs/POST_CLEANUP_REPORT.md` for current checks and remaining gates. Historical review evidence is under `reports/archive/pre-cleanup`; fresh command reports are in `reports/`.
 - [ ] Read `reports/e2e.json` and note the rehearsal job ID and captured Mailpit ID. Read the n8n IDs in `reports/recruiter-verification.json`; open their actual executions in the editor. Execution payloads expire after 24 hours, so rerun if needed.
 - [ ] Open `reports/checks.json`, `reports/pytest.xml`, `reports/benchmark.json`, and `reports/recruiter-verification.json` in editor tabs. Check their job IDs match. Prepare the architecture diagram and `serverless.yml`.
 - [ ] Visual/browser validation remains a manual gate. The review environment exposed no browser surface. Check desktop and narrow-window rendering, keyboard access, password-token input, job selector, discovery status, drag/drop, progress and errors yourself. No automated visual test is claimed.

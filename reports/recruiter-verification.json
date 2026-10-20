@@ -1,5 +1,5 @@
 {
-  "job_id": "a4134ee6-dcfe-445e-bfea-d77d3283af1c",
+  "job_id": "cf5351fc-21b4-476e-a990-63c7fdb92cf0",
   "csv_sha256": "31e4b00ee000ec0478262bcc629073e76920201b05978a816a3ad4c0133d1ec9",
   "users": 10000,
   "distinct_external_ids": 10000,
@@ -11,11 +11,11 @@
   },
   "products": [
     {
-      "id": 1,
-      "lender": "Fictional Incomplete Finance",
+      "id": 2,
+      "lender": "Fictional Independent Finance",
       "verification_status": "DEMO_FIXTURE",
-      "source_url": "https://example.org/demo/incomplete",
-      "criteria_complete": false
+      "source_url": "https://example.org/demo/independent",
+      "criteria_complete": true
     },
     {
       "id": 3,
@@ -25,11 +25,11 @@
       "criteria_complete": true
     },
     {
-      "id": 2,
-      "lender": "Fictional Independent Finance",
+      "id": 1,
+      "lender": "Fictional Incomplete Finance",
       "verification_status": "DEMO_FIXTURE",
-      "source_url": "https://example.org/demo/independent",
-      "criteria_complete": true
+      "source_url": "https://example.org/demo/incomplete",
+      "criteria_complete": false
     }
   ],
   "per_product_outcomes": [
@@ -52,19 +52,26 @@
   "notifications_sent": 3302,
   "outbox": [
     {
-      "workflow": "C",
-      "status": "DELIVERED",
-      "attempts": 1,
-      "progress_count": 3104
-    },
-    {
       "workflow": "B",
       "status": "DELIVERED",
       "attempts": 1,
       "progress_count": 0
+    },
+    {
+      "workflow": "C",
+      "status": "DELIVERED",
+      "attempts": 0,
+      "progress_count": 3204
     }
   ],
   "audits": {
+    "C": {
+      "last_batch_sent": 0,
+      "pending": 0,
+      "uncertain": 0,
+      "sent_total": 3302,
+      "n8n_execution_id": "123"
+    },
     "B": {
       "matching_version": "deterministic-v1",
       "total_users": 10000,
@@ -76,88 +83,19 @@
       "llm_evaluations": 0,
       "estimated_llm_calls_avoided": 30000,
       "reduction_percentage": 55.66,
-      "candidate_pipeline_seconds": 7.896298055999978,
-      "sql_execution_seconds": 0.32802041399372683,
+      "candidate_pipeline_seconds": 9.232665674000032,
+      "sql_execution_seconds": 0.3987259390002009,
       "sql_timing_scope": "backend cursor execute plus fetch, including client transfer; excludes persistence",
       "sql_prefilter_passes": 2,
-      "matching_seconds": 8.335850030000074,
-      "persisted_by_n8n_execution_id": "43",
-      "completed_by_n8n_execution_id": "43"
-    },
-    "C": {
-      "last_batch_sent": 0,
-      "pending": 0,
-      "uncertain": 0,
-      "sent_total": 3302,
-      "n8n_execution_id": "84"
+      "matching_seconds": 10.175161328000058,
+      "persisted_by_n8n_execution_id": "86",
+      "completed_by_n8n_execution_id": "86"
     }
   },
   "scope": "Independent Cartesian oracle uses current product criteria; historical comparisons require unchanged criteria or retained match snapshots. No production matching function called.",
   "n8n_executions": [
     {
-      "id": 43,
-      "status": "success",
-      "finished": true,
-      "workflow_id": "loan-workflow-b",
-      "nodes": {
-        "Authenticated webhook": [
-          {
-            "status": "success",
-            "milliseconds": 0
-          }
-        ],
-        "Validate job ID": [
-          {
-            "status": "success",
-            "milliseconds": 21
-          }
-        ],
-        "Fetch completed job": [
-          {
-            "status": "success",
-            "milliseconds": 51
-          }
-        ],
-        "Require completed ingestion": [
-          {
-            "status": "success",
-            "milliseconds": 14
-          }
-        ],
-        "SQL structured candidate prefilter": [
-          {
-            "status": "success",
-            "milliseconds": 709
-          }
-        ],
-        "Advanced deterministic rules": [
-          {
-            "status": "success",
-            "milliseconds": 690
-          }
-        ],
-        "Validate and bulk persist": [
-          {
-            "status": "success",
-            "milliseconds": 9239
-          }
-        ],
-        "Validate measured metrics": [
-          {
-            "status": "success",
-            "milliseconds": 19
-          }
-        ],
-        "Acknowledge B and queue C": [
-          {
-            "status": "success",
-            "milliseconds": 47
-          }
-        ]
-      }
-    },
-    {
-      "id": 71,
+      "id": 85,
       "status": "success",
       "finished": true,
       "workflow_id": "loan-workflow-a",
@@ -171,31 +109,93 @@
         "Fixture source configuration": [
           {
             "status": "success",
-            "milliseconds": 447
+            "milliseconds": 101
           }
         ],
         "Fetch fictional source HTML": [
           {
             "status": "success",
-            "milliseconds": 331
+            "milliseconds": 101
           }
         ],
         "Normalize fixture HTML": [
           {
             "status": "success",
-            "milliseconds": 224
+            "milliseconds": 44
           }
         ],
         "Extract validate and upsert fictional products": [
           {
             "status": "success",
-            "milliseconds": 2072
+            "milliseconds": 489
           }
         ]
       }
     },
     {
-      "id": 84,
+      "id": 86,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-b",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 0
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 25
+          }
+        ],
+        "Fetch completed job": [
+          {
+            "status": "success",
+            "milliseconds": 48
+          }
+        ],
+        "Require completed ingestion": [
+          {
+            "status": "success",
+            "milliseconds": 14
+          }
+        ],
+        "SQL structured candidate prefilter": [
+          {
+            "status": "success",
+            "milliseconds": 674
+          }
+        ],
+        "Advanced deterministic rules": [
+          {
+            "status": "success",
+            "milliseconds": 511
+          }
+        ],
+        "Validate and bulk persist": [
+          {
+            "status": "success",
+            "milliseconds": 11656
+          }
+        ],
+        "Validate measured metrics": [
+          {
+            "status": "success",
+            "milliseconds": 19
+          }
+        ],
+        "Acknowledge B and queue C": [
+          {
+            "status": "success",
+            "milliseconds": 56
+          }
+        ]
+      }
+    },
+    {
+      "id": 123,
       "status": "success",
       "finished": true,
       "workflow_id": "loan-workflow-c",
@@ -203,25 +203,25 @@
         "Authenticated webhook": [
           {
             "status": "success",
-            "milliseconds": 3
+            "milliseconds": 1
           }
         ],
         "Validate job ID": [
           {
             "status": "success",
-            "milliseconds": 129
+            "milliseconds": 22
           }
         ],
         "Grouped allowlisted delivery": [
           {
             "status": "success",
-            "milliseconds": 1180
+            "milliseconds": 457
           }
         ],
         "Delivery metrics": [
           {
             "status": "success",
-            "milliseconds": 34
+            "milliseconds": 28
           }
         ]
       }
@@ -234,7 +234,7 @@
       "sha256": "6c8990be8662aa6122dcef69aa33190b082db47966cd80aeb3a6dfbbbe4d455a",
       "stored_nodes_equal": true,
       "stored_connections_equal": true,
-      "published_version": "6681e34b-d06a-4dbd-8393-47f84df28a4a"
+      "published_version": "8dd7409b-e1f6-4334-b8ec-bed4b99a492e"
     },
     {
       "workflow_id": "loan-workflow-b",
@@ -242,7 +242,7 @@
       "sha256": "66dc68f67fc0f4b1ec2623ee8e6f56b0bbe9a670b5cd852ce33ab5511d9a128a",
       "stored_nodes_equal": true,
       "stored_connections_equal": true,
-      "published_version": "ada79132-e463-48bd-ac71-c16527a12afd"
+      "published_version": "4bf60c66-5938-42d9-b670-b9725f5a4ed0"
     },
     {
       "workflow_id": "loan-workflow-c",
@@ -250,202 +250,182 @@
       "sha256": "4a86a22e859357907b19550d9e31c7a1bc7da0644f05d92df10904f5e62233fd",
       "stored_nodes_equal": true,
       "stored_connections_equal": true,
-      "published_version": "b678fabf-ebbb-4f3b-8f31-ac4d84f84e01"
+      "published_version": "8f2892b2-9a63-4120-8c28-70b930570273"
     }
   ],
   "notification_batch_executions": [
     {
-      "execution_id": 44,
+      "execution_id": 87,
       "sent": 100,
       "pending": 3202
     },
     {
-      "execution_id": 45,
+      "execution_id": 88,
       "sent": 100,
       "pending": 3102
     },
     {
-      "execution_id": 46,
+      "execution_id": 89,
       "sent": 100,
       "pending": 3002
     },
     {
-      "execution_id": 47,
+      "execution_id": 90,
       "sent": 100,
       "pending": 2902
     },
     {
-      "execution_id": 48,
+      "execution_id": 91,
       "sent": 100,
       "pending": 2802
     },
     {
-      "execution_id": 49,
+      "execution_id": 92,
       "sent": 100,
       "pending": 2702
     },
     {
-      "execution_id": 50,
+      "execution_id": 93,
       "sent": 100,
-      "pending": 2572
+      "pending": 2602
     },
     {
-      "execution_id": 51,
+      "execution_id": 94,
       "sent": 100,
-      "pending": 2438
+      "pending": 2502
     },
     {
-      "execution_id": 52,
+      "execution_id": 95,
       "sent": 100,
-      "pending": 2278
+      "pending": 2402
     },
     {
-      "execution_id": 53,
+      "execution_id": 96,
       "sent": 100,
-      "pending": 2143
+      "pending": 2302
     },
     {
-      "execution_id": 54,
+      "execution_id": 97,
       "sent": 100,
-      "pending": 2101
+      "pending": 2202
     },
     {
-      "execution_id": 55,
+      "execution_id": 98,
       "sent": 100,
-      "pending": 2004
+      "pending": 2102
     },
     {
-      "execution_id": 56,
+      "execution_id": 99,
       "sent": 100,
-      "pending": 1889
+      "pending": 1979
     },
     {
-      "execution_id": 57,
+      "execution_id": 100,
       "sent": 100,
-      "pending": 1675
+      "pending": 1878
     },
     {
-      "execution_id": 58,
+      "execution_id": 101,
       "sent": 100,
-      "pending": 1451
+      "pending": 1781
     },
     {
-      "execution_id": 59,
+      "execution_id": 102,
       "sent": 100,
-      "pending": 1305
+      "pending": 1678
     },
     {
-      "execution_id": 60,
+      "execution_id": 103,
       "sent": 100,
-      "pending": 1295
+      "pending": 1566
     },
     {
-      "execution_id": 61,
+      "execution_id": 104,
       "sent": 100,
-      "pending": 1085
+      "pending": 1434
     },
     {
-      "execution_id": 62,
+      "execution_id": 105,
       "sent": 100,
-      "pending": 1178
+      "pending": 1347
     },
     {
-      "execution_id": 63,
+      "execution_id": 106,
       "sent": 100,
-      "pending": 935
+      "pending": 1266
     },
     {
-      "execution_id": 64,
+      "execution_id": 107,
       "sent": 100,
-      "pending": 959
+      "pending": 1165
     },
     {
-      "execution_id": 65,
+      "execution_id": 108,
       "sent": 100,
-      "pending": 836
+      "pending": 1075
     },
     {
-      "execution_id": 66,
+      "execution_id": 109,
       "sent": 100,
-      "pending": 623
+      "pending": 1002
     },
     {
-      "execution_id": 67,
+      "execution_id": 110,
       "sent": 100,
-      "pending": 664
+      "pending": 902
     },
     {
-      "execution_id": 68,
+      "execution_id": 111,
       "sent": 100,
-      "pending": 401
+      "pending": 802
     },
     {
-      "execution_id": 69,
+      "execution_id": 112,
       "sent": 100,
-      "pending": 377
+      "pending": 702
     },
     {
-      "execution_id": 70,
+      "execution_id": 113,
       "sent": 100,
-      "pending": 198
+      "pending": 602
     },
     {
-      "execution_id": 72,
+      "execution_id": 114,
       "sent": 100,
-      "pending": 190
+      "pending": 502
     },
     {
-      "execution_id": 73,
-      "sent": 96,
+      "execution_id": 115,
+      "sent": 100,
+      "pending": 402
+    },
+    {
+      "execution_id": 116,
+      "sent": 100,
+      "pending": 302
+    },
+    {
+      "execution_id": 117,
+      "sent": 100,
+      "pending": 202
+    },
+    {
+      "execution_id": 118,
+      "sent": 100,
+      "pending": 98
+    },
+    {
+      "execution_id": 119,
+      "sent": 100,
+      "pending": 2
+    },
+    {
+      "execution_id": 120,
+      "sent": 2,
       "pending": 0
     },
     {
-      "execution_id": 74,
-      "sent": 83,
-      "pending": 0
-    },
-    {
-      "execution_id": 75,
-      "sent": 70,
-      "pending": 0
-    },
-    {
-      "execution_id": 76,
-      "sent": 64,
-      "pending": 0
-    },
-    {
-      "execution_id": 77,
-      "sent": 67,
-      "pending": 0
-    },
-    {
-      "execution_id": 78,
-      "sent": 57,
-      "pending": 0
-    },
-    {
-      "execution_id": 79,
-      "sent": 32,
-      "pending": 0
-    },
-    {
-      "execution_id": 80,
-      "sent": 24,
-      "pending": 0
-    },
-    {
-      "execution_id": 81,
-      "sent": 9,
-      "pending": 0
-    },
-    {
-      "execution_id": 82,
-      "sent": 0,
-      "pending": 0
-    },
-    {
-      "execution_id": 84,
+      "execution_id": 123,
       "sent": 0,
       "pending": 0
     }

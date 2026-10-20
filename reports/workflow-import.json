@@ -5,7 +5,7 @@
     "sha256": "6c8990be8662aa6122dcef69aa33190b082db47966cd80aeb3a6dfbbbe4d455a",
     "stored_nodes_equal": true,
     "stored_connections_equal": true,
-    "published_version": "6681e34b-d06a-4dbd-8393-47f84df28a4a"
+    "published_version": "8dd7409b-e1f6-4334-b8ec-bed4b99a492e"
   },
   {
     "workflow_id": "loan-workflow-b",
@@ -13,7 +13,7 @@
     "sha256": "66dc68f67fc0f4b1ec2623ee8e6f56b0bbe9a670b5cd852ce33ab5511d9a128a",
     "stored_nodes_equal": true,
     "stored_connections_equal": true,
-    "published_version": "ada79132-e463-48bd-ac71-c16527a12afd"
+    "published_version": "4bf60c66-5938-42d9-b670-b9725f5a4ed0"
   },
   {
     "workflow_id": "loan-workflow-c",
@@ -21,6 +21,6 @@
     "sha256": "4a86a22e859357907b19550d9e31c7a1bc7da0644f05d92df10904f5e62233fd",
     "stored_nodes_equal": true,
     "stored_connections_equal": true,
-    "published_version": "b678fabf-ebbb-4f3b-8f31-ac4d84f84e01"
+    "published_version": "8f2892b2-9a63-4120-8c28-70b930570273"
   }
 ]

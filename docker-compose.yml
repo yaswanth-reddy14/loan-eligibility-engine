@@ -122,7 +122,6 @@ services:
       EXECUTIONS_DATA_SAVE_ON_SUCCESS: all
       EXECUTIONS_DATA_SAVE_ON_ERROR: all
       N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
-      WORKFLOW_SECRET: ${WORKFLOW_SECRET}
       DEMO_MODE: 'true'
     ports: ["127.0.0.1:5678:5678"]
     volumes:

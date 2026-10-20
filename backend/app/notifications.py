@@ -148,10 +148,13 @@ def notify(job_id: str, limit: int = 100, execution_id: str | None = None) -> di
         sent += 1
     with Session(engine()) as db, db.begin():
         db.scalar(select(Job).where(Job.id == job_id).with_for_update())  # Serialize terminal audit counts.
-        pending = len(
-            db.scalars(
-                select(Notification.id).where(Notification.job_id == job_id, Notification.status == "PENDING")
-            ).all()
+        pending = (
+            db.scalar(
+                select(func.count())
+                .select_from(Notification)
+                .where(Notification.job_id == job_id, Notification.status == "PENDING")
+            )
+            or 0
         )
         uncertain = (
             db.scalar(

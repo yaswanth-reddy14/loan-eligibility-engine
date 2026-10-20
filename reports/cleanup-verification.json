@@ -1,0 +1,137 @@
+{
+  "review_date": "2026-10-20",
+  "observed_at_utc": "2026-10-20T03:35:26.687082+00:00",
+  "baseline_commit": "7f79b0c735bdfadf5cf77771d9fcf4ca164b9847",
+  "job_id": "cf5351fc-21b4-476e-a990-63c7fdb92cf0",
+  "tests": {
+    "tests": 69,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "original_test_cases_unchanged": true,
+  "pytest_asyncio_distribution_uninstalled": true,
+  "downloads_backup_documents_unchanged": 13,
+  ".env_and_csv_unchanged": true,
+  "historical_reports_preserved": 28,
+  "historical_jobs_preserved": {
+    "83628220-3ebb-4046-8b58-727fd0abdf50": {
+      "users": 10000,
+      "sent": 3302
+    },
+    "a4134ee6-dcfe-445e-bfea-d77d3283af1c": {
+      "users": 10000,
+      "sent": 3302
+    }
+  },
+  "seven_services": [
+    {
+      "Service": "api",
+      "State": "running",
+      "Health": "healthy",
+      "Image": "loan-engine-app:local"
+    },
+    {
+      "Service": "dispatcher",
+      "State": "running",
+      "Health": "healthy",
+      "Image": "loan-engine-app:local"
+    },
+    {
+      "Service": "ingestion-worker",
+      "State": "running",
+      "Health": "healthy",
+      "Image": "loan-engine-app:local"
+    },
+    {
+      "Service": "mailpit",
+      "State": "running",
+      "Health": "healthy",
+      "Image": "axllent/mailpit:v1.24.1"
+    },
+    {
+      "Service": "minio",
+      "State": "running",
+      "Health": "healthy",
+      "Image": "loan-engine-minio"
+    },
+    {
+      "Service": "n8n",
+      "State": "running",
+      "Health": "healthy",
+      "Image": "docker.n8n.io/n8nio/n8n:2.43.6"
+    },
+    {
+      "Service": "postgres",
+      "State": "running",
+      "Health": "healthy",
+      "Image": "postgres:16.8-alpine"
+    }
+  ],
+  "served_assets_match_source": true,
+  "private_env_http_status": 404,
+  "job_scoped_api_counts_verified": true,
+  "redundant_n8n_secret_env_removed": true,
+  "n8n_email_column_denied": true,
+  "browser_surface": {
+    "apps": [],
+    "browsers": []
+  },
+  "n8n_executions": [
+    {
+      "id": 85,
+      "workflow_id": "loan-workflow-a"
+    },
+    {
+      "id": 86,
+      "workflow_id": "loan-workflow-b"
+    },
+    {
+      "id": 123,
+      "workflow_id": "loan-workflow-c"
+    }
+  ],
+  "notifications_verified": 3302,
+  "candidate_reduction_percentage": 55.66,
+  "naive_median_seconds": 0.5706066999700852,
+  "optimized_median_seconds": 0.5378742000320926,
+  "known_runtime_dependency_findings": 0,
+  "aws_deployment_verified": false,
+  "ses_delivery_verified": false,
+  "browser_interaction_verified": false,
+  "file_counts": {
+    "scope": "All project files excluding .git and .venv",
+    "before": 2219,
+    "after": 140,
+    "git_visible_before": 111,
+    "git_visible_after": 137,
+    "generated_files_removed": 2109,
+    "source_build_files_refined": 7,
+    "source_files_deleted": 0,
+    "historical_reports_archived": 28
+  },
+  "source_build_files_refined": [
+    "backend/app/cloud.py",
+    "backend/app/notifications.py",
+    "frontend/app.js",
+    "frontend/build.mjs",
+    "frontend/index.html",
+    "frontend/style.css",
+    "frontend/package.json"
+  ],
+  "branch": "refactor/submission-cleanup",
+  "remote_configured": false,
+  "documentation_links": {
+    "markdown_files_checked": 18,
+    "local_links_checked": 38,
+    "broken_local_links": [],
+    "missing_explicit_report_paths": [],
+    "scope": "Local Markdown links and explicit report paths; external websites and recording links are not claimed verified"
+  },
+  "generated_files_removed": 2109,
+  "git_visible_secret_scan": {
+    "files_scanned": 137,
+    "files_with_findings": [],
+    "scope": "Configured local secrets (16+ chars), AWS access-key ID and PEM private-key patterns; not a universal security scan"
+  }
+}
