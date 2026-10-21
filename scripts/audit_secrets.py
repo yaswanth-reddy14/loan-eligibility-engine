@@ -15,6 +15,10 @@ def main() -> None:
         "POSTGRES_PASSWORD",
         "MINIO_ROOT_PASSWORD",
         "N8N_ENCRYPTION_KEY",
+        "GEMINI_API_KEY",
+        "AWS_SECRET_ACCESS_KEY",
+        "AWS_SESSION_TOKEN",
+        "SMTP_PASSWORD",
     ]
     values = [config[key].encode() for key in secret_keys if config.get(key)]
     output = subprocess.check_output(["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"])

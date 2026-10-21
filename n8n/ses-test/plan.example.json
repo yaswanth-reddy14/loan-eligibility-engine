@@ -1,0 +1,15 @@
+{
+  "phase": "PREPARATION_ONLY",
+  "approved": false,
+  "region": "ap-south-1",
+  "account_id": null,
+  "sender": null,
+  "recipient": null,
+  "job_id": null,
+  "max_messages": 1,
+  "credential_installed": false,
+  "sender_verified_in_region": false,
+  "recipient_verified_in_region": false,
+  "sandbox_status": "UNVERIFIED",
+  "production_workflow_change_allowed": false
+}

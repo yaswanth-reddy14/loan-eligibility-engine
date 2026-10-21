@@ -92,9 +92,9 @@
       ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH candidates AS (\nSELECT u.id AS user_id, p.id AS product_id,\n p.criteria_complete, p.verification_status,\n p.lender, p.product_name, p.source_url, p.rate_representation, p.retrieved_at,\n c.minimum_monthly_income, c.minimum_credit_score, c.age_min, c.age_max,\n c.employment_requirements, c.qualitative_requirements\nFROM users u JOIN loan_products p ON p.active = true\nJOIN product_criteria c ON c.product_id = p.id\nWHERE u.job_id = $1\n AND (p.verification_status = 'VERIFIED' OR ($2 AND p.verification_status = 'DEMO_FIXTURE'))\n AND (c.minimum_monthly_income IS NULL OR u.monthly_income >= c.minimum_monthly_income)\n AND (c.minimum_credit_score IS NULL OR u.credit_score >= c.minimum_credit_score)\n AND (c.age_min IS NULL OR u.age >= c.age_min)\n AND (c.age_max IS NULL OR u.age <= c.age_max)\n AND (c.employment_requirements IS NULL OR CAST(c.employment_requirements AS jsonb) = 'null'::jsonb OR CAST(c.employment_requirements AS jsonb) ? u.employment_status)\n LIMIT 50001) SELECT $1::text AS job_id, COALESCE(jsonb_agg(to_jsonb(candidates)), '[]'::jsonb) AS candidates FROM candidates",
+        "query": "WITH candidates AS (SELECT * FROM (\nSELECT u.id AS user_id, p.id AS product_id,\n p.criteria_complete, p.verification_status,\n p.lender, p.product_name, p.source_url, p.rate_representation, p.retrieved_at,\n c.minimum_monthly_income, c.minimum_credit_score, c.age_min, c.age_max,\n c.employment_requirements, c.qualitative_requirements\nFROM users u JOIN loan_products p ON p.active = true\nJOIN product_criteria c ON c.product_id = p.id\nWHERE u.job_id = $1\n AND (p.verification_status = 'VERIFIED' OR ($2 AND p.verification_status = 'DEMO_FIXTURE'))\n AND (c.minimum_monthly_income IS NULL OR u.monthly_income >= c.minimum_monthly_income)\n AND (c.minimum_credit_score IS NULL OR u.credit_score >= c.minimum_credit_score)\n AND (c.age_min IS NULL OR u.age >= c.age_min)\n AND (c.age_max IS NULL OR u.age <= c.age_max)\n AND (c.employment_requirements IS NULL OR CAST(c.employment_requirements AS jsonb) = 'null'::jsonb OR CAST(c.employment_requirements AS jsonb) ? u.employment_status)\n) AS eligible WHERE (user_id,product_id) > ($3,$4) ORDER BY user_id,product_id LIMIT $5) SELECT $1::text AS job_id, $3::bigint AS after_user_id, $4::integer AS after_product_id, COALESCE(jsonb_agg(to_jsonb(candidates) ORDER BY user_id,product_id), '[]'::jsonb) AS candidates FROM candidates",
         "options": {
-          "queryReplacement": "={{[$json.job_id, $env.DEMO_MODE === 'true']}}"
+          "queryReplacement": "={{[$json.job_id, $env.DEMO_MODE === 'true', $json.after_user_id, $json.after_product_id, $json.page_size]}}"
         }
       },
       "credentials": {
@@ -114,7 +114,7 @@
         0
       ],
       "parameters": {
-        "jsCode": "const envelope = $json;\nconst fields = ['minimum_monthly_income','minimum_credit_score','age_min','age_max','employment_requirements'];\nif (!Array.isArray(envelope.candidates) || envelope.candidates.length > 50000) {\n  throw new Error('Candidate limit exceeded; partition this job before matching');\n}\nconst evaluations = envelope.candidates.map(candidate => {\n  const unknown = fields.filter(field => candidate[field] === null);\n  unknown.push(...(candidate.qualitative_requirements || []));\n  if (!candidate.criteria_complete) unknown.push('Incomplete source criteria');\n  return {user_id:candidate.user_id, product_id:candidate.product_id,\n    status:unknown.length ? 'REVIEW_REQUIRED' : 'POSSIBLY_ELIGIBLE'};\n});\nreturn [{json:{job_id:envelope.job_id, evaluations}}];\n"
+        "jsCode": "const envelope = $json;\nconst fields = ['minimum_monthly_income','minimum_credit_score','age_min','age_max','employment_requirements'];\nif (!Array.isArray(envelope.candidates) || envelope.candidates.length > 1000) {\n  throw new Error('Candidate page exceeds 1000 rows');\n}\nconst evaluations = envelope.candidates.map(candidate => {\n  const unknown = fields.filter(field => candidate[field] === null);\n  unknown.push(...(candidate.qualitative_requirements || []));\n  if (!candidate.criteria_complete) unknown.push('Incomplete source criteria');\n  return {user_id:candidate.user_id, product_id:candidate.product_id,\n    status:unknown.length ? 'REVIEW_REQUIRED' : 'POSSIBLY_ELIGIBLE'};\n});\nreturn [{json:{job_id:envelope.job_id, after_user_id:envelope.after_user_id ?? 0,\n  after_product_id:envelope.after_product_id ?? 0, evaluations}}];\n"
       }
     },
     {
@@ -127,7 +127,7 @@
         0
       ],
       "parameters": {
-        "url": "=http://api:8000/internal/matching/{{$json.job_id}}",
+        "url": "=http://api:8000/internal/matching/{{$json.job_id}}/page",
         "method": "POST",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
@@ -136,7 +136,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{JSON.stringify({evaluations:$json.evaluations,execution_id:$execution.id})}}"
+        "jsonBody": "={{JSON.stringify({...$json,execution_id:$execution.id})}}"
       },
       "credentials": {
         "httpHeaderAuth": {
@@ -191,6 +191,102 @@
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 2000
+    },
+    {
+      "id": "fetch-matching-progress",
+      "name": "Fetch matching progress",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        0
+      ],
+      "parameters": {
+        "url": "=http://api:8000/internal/matching/{{$json.job_id}}/progress",
+        "method": "GET",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "matching-page-required",
+      "name": "Matching page required",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Matching page required",
+              "leftValue": "={{$json.more}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "more-matching-pages",
+      "name": "More matching pages",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1750,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "More matching pages",
+              "leftValue": "={{$json.more}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
     }
   ],
   "connections": {
@@ -231,7 +327,18 @@
       "main": [
         [
           {
-            "node": "SQL structured candidate prefilter",
+            "node": "Fetch matching progress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch matching progress": {
+      "main": [
+        [
+          {
+            "node": "Matching page required",
             "type": "main",
             "index": 0
           }
@@ -273,6 +380,42 @@
     },
     "Validate measured metrics": {
       "main": [
+        [
+          {
+            "node": "More matching pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Matching page required": {
+      "main": [
+        [
+          {
+            "node": "SQL structured candidate prefilter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Acknowledge B and queue C",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "More matching pages": {
+      "main": [
+        [
+          {
+            "node": "Fetch matching progress",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Acknowledge B and queue C",

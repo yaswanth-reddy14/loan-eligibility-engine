@@ -46,6 +46,18 @@ def advanced(candidate: dict[str, Any]) -> tuple[str, list[str]]:
     return ("REVIEW_REQUIRED" if unknown else "POSSIBLY_ELIGIBLE", unknown)
 
 
+def match_record(job_id: str, candidate: dict[str, Any]) -> dict[str, Any]:
+    status, uncertainty = advanced(candidate)
+    return {
+        "job_id": job_id, "user_id": candidate["user_id"], "product_id": candidate["product_id"],
+        "matching_version": VERSION, "status": status,
+        "matched_criteria": {"structured_rules": "PASSED", "product_snapshot": {
+            key: value if isinstance(value, list | dict | bool | int | float) or value is None else str(value)
+            for key, value in candidate.items()
+        }}, "uncertainty": uncertainty,
+    }
+
+
 def run_matching(
     job_id: str, evaluations: list[dict[str, Any]] | None = None, execution_id: str | None = None
 ) -> dict[str, Any]:
@@ -63,6 +75,8 @@ def run_matching(
             raise ValueError("A completed ingestion job is required")
         previous = db.scalar(select(Audit).where(Audit.job_id == job_id, Audit.workflow == "B"))
         if previous:
+            if previous.status == "PARTITIONING":
+                raise ValueError("Continue this job through the paged matching workflow")
             if previous.metrics.get("matching_version") != VERSION:
                 raise ValueError(
                     "Matching version changed; create a new upload job to preserve this job's audit"
@@ -107,7 +121,8 @@ def run_matching(
         for row in fetched():
             candidate = dict(row)
             candidates += 1
-            status, uncertainty = advanced(candidate)
+            record = match_record(job_id, candidate)
+            status = record["status"]
             if (
                 proposed is not None
                 and proposed.pop((candidate["user_id"], candidate["product_id"]), None) != status
@@ -115,25 +130,7 @@ def run_matching(
                 raise ValueError(
                     "Workflow evaluation disagrees with current criteria; retry from SQL prefilter"
                 )
-            batch.append(
-                {
-                    "job_id": job_id,
-                    "user_id": candidate["user_id"],
-                    "product_id": candidate["product_id"],
-                    "matching_version": VERSION,
-                    "status": status,
-                    "matched_criteria": {
-                        "structured_rules": "PASSED",
-                        "product_snapshot": {
-                            key: value
-                            if isinstance(value, list | dict | bool | int | float) or value is None
-                            else str(value)
-                            for key, value in candidate.items()
-                        },
-                    },
-                    "uncertainty": uncertainty,
-                }
-            )
+            batch.append(record)
             if len(batch) >= settings().batch_size:
                 db.execute(insert(Match).values(batch).on_conflict_do_nothing())
                 persisted += len(batch)

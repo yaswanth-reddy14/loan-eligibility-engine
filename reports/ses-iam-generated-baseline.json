@@ -1,0 +1,24 @@
+{
+  "Policies": [
+    {
+      "Policy": {
+        "Id": "IamPolicyAutopilot",
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "ses:SendEmail"
+            ],
+            "Resource": [
+              "arn:aws:ses:ap-south-1:*:configuration-set/*",
+              "arn:aws:ses:ap-south-1:*:identity/*",
+              "arn:aws:ses:ap-south-1:*:template/*"
+            ]
+          }
+        ]
+      },
+      "PolicyType": "Identity"
+    }
+  ]
+}

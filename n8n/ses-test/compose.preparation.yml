@@ -1,0 +1,40 @@
+{
+  "services": {
+    "ses-test-api": {
+      "image": "loan-engine-app:local",
+      "profiles": [
+        "ses-preparation"
+      ],
+      "env_file": ".env",
+      "environment": {
+        "DATABASE_URL": "postgresql+psycopg://loan:${POSTGRES_PASSWORD}@postgres:5432/loan",
+        "EMAIL_DELIVERY_MODE": "preview",
+        "N8N_SES_ENABLED": "false",
+        "LLM_ENABLED": "false",
+        "SES_SENDER": "",
+        "GEMINI_API_KEY": "",
+        "GEMINI_MODEL": "",
+        "NOTIFICATION_TEST_INBOX": "phase-one-disabled@loan.test",
+        "AWS_REGION": "ap-south-1",
+        "AWS_ACCESS_KEY_ID": "",
+        "AWS_SECRET_ACCESS_KEY": "",
+        "AWS_SESSION_TOKEN": "",
+        "AWS_EC2_METADATA_DISABLED": "true",
+        "SMTP_HOST": "127.0.0.1",
+        "SMTP_PORT": "9",
+        "DEMO_MODE": "true"
+      },
+      "restart": "no",
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+        ],
+        "interval": "10s",
+        "retries": 6
+      }
+    }
+  }
+}

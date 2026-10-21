@@ -1,0 +1,29 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ses:SendEmail"
+      ],
+      "Resource": [
+        "arn:aws:ses:ap-south-1:ACCOUNT_ID:identity/SENDER_EMAIL"
+      ],
+      "Sid": "OneControlledRecipient",
+      "Condition": {
+        "StringEquals": {
+          "ses:FromAddress": "SENDER_EMAIL",
+          "aws:RequestedRegion": "ap-south-1"
+        },
+        "ForAllValues:StringEquals": {
+          "ses:Recipients": [
+            "CONTROLLED_RECIPIENT"
+          ]
+        },
+        "Null": {
+          "ses:Recipients": "false"
+        }
+      }
+    }
+  ]
+}

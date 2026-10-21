@@ -57,7 +57,9 @@ def deliver(event_id: str, first_name: str, products: list[dict[str, str]]) -> s
         "ses",
         region_name=cfg.aws_region,
         config=Config(
-            retries={"total_max_attempts": 2, "mode": "standard"}, connect_timeout=5, read_timeout=15
+            # SendEmail has no idempotency token. An SDK retry after a lost
+            # acknowledgement could duplicate a submission inside one DB attempt.
+            retries={"total_max_attempts": 1, "mode": "standard"}, connect_timeout=5, read_timeout=15
         ),
     )
     response = client.send_email(
@@ -71,8 +73,8 @@ def deliver(event_id: str, first_name: str, products: list[dict[str, str]]) -> s
     return str(response["MessageId"])
 
 
-def notify(job_id: str, limit: int = 100, execution_id: str | None = None) -> dict[str, Any]:
-    """Crash after submission is UNKNOWN: never blindly resend ambiguous deliveries."""
+def seed_events(job_id: str) -> None:
+    """Shared recipient gate and idempotent event creation for both delivery transports."""
     with Session(engine()) as db, db.begin():
         if db.scalar(select(User.id).where(func.lower(User.email) == destination().lower()).limit(1)):
             raise ValueError("Controlled inbox collides with a source CSV address; select a different inbox")
@@ -96,6 +98,13 @@ def notify(job_id: str, limit: int = 100, execution_id: str | None = None) -> di
             )
             .on_conflict_do_nothing()
         )
+
+
+def notify(job_id: str, limit: int = 100, execution_id: str | None = None) -> dict[str, Any]:
+    """Crash after submission is UNKNOWN: never blindly resend ambiguous deliveries."""
+    if settings().n8n_ses_enabled:
+        raise ValueError("n8n SES transport selected; use the reserved-event workflow")
+    seed_events(job_id)
     sent = 0
     for _ in range(limit):
         with Session(engine()) as db, db.begin():
@@ -108,6 +117,8 @@ def notify(job_id: str, limit: int = 100, execution_id: str | None = None) -> di
             )
             if not event:
                 break
+            if event.destination != destination():
+                raise ValueError("Controlled inbox changed; reconcile pending events before sending")
             event.status, event.updated_at = "SENDING", now()
             event.attempts += 1
             event_id, user_id = event.id, event.user_id
@@ -146,6 +157,10 @@ def notify(job_id: str, limit: int = 100, execution_id: str | None = None) -> di
             assert delivered is not None
             delivered.status, delivered.provider_id, delivered.updated_at = "SENT", provider_id, now()
         sent += 1
+    return summarize(job_id, sent, execution_id)
+
+
+def summarize(job_id: str, sent: int = 0, execution_id: str | None = None) -> dict[str, Any]:
     with Session(engine()) as db, db.begin():
         db.scalar(select(Job).where(Job.id == job_id).with_for_update())  # Serialize terminal audit counts.
         pending = (

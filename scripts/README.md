@@ -9,6 +9,7 @@ Run from the repository root with `$env:PYTHONPATH = 'backend;.'` and the projec
 | `inspect_csv.py` | Inspect the supplied CSV without printing source identities. |
 | `import_n8n.py` | Set up restricted local credentials and import/publish A/B/C; restarts n8n. |
 | `generate_workflows.py` | Deterministic workflow exports from the shared SQL/source configuration. Run after workflow changes, not during every demo. |
+| `validate_ses_preparation.py` | Offline SES draft, gates and policy-template validation; no AWS calls. |
 | `validate_workflows.py` | Graph/official-node/auth structure; runtime import remains a separate check. |
 | `run_checks.py` | Ruff, mypy, pytest, workflow/configuration/Compose checks, build and migrations. Set `RUN_MAILPIT_TEST=1` for the controlled SMTP test. |
 | `smoke_api.py` | Root/assets/health and API authentication over HTTP; not browser interaction. |
@@ -21,4 +22,4 @@ Run from the repository root with `$env:PYTHONPATH = 'backend;.'` and the projec
 | `package_lambda.ps1` / `package_lambda.py` | Windows entry point / Linux artifact builder using Docker stdin. These are not duplicate implementations. |
 | `verify_lambda_artifact.py` | Check source freshness/native imports/local ASGI in the AWS Python base container; makes no AWS service calls. |
 
-Full command sequences: [README](../README.md), [verification commands](../README.md#verify), [deployment](../docs/deployment.md). Evidence locations: [reports](../reports/README.md). Preserve database volumes and reconcile ambiguous email events before any manual retry.
+Full command sequences: [README](../README.md), [verification commands](../docs/testing.md), [deployment](../docs/deployment.md). Evidence locations: [reports](../reports/README.md). Preserve database volumes and reconcile ambiguous email events before any manual retry.

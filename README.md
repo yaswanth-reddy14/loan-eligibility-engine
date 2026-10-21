@@ -1,45 +1,45 @@
 # Loan Eligibility Engine
 
-Validate a user CSV, evaluate possible loan eligibility, and trace discovery, matching and notification through n8n. Results mean **POSSIBLY_ELIGIBLE**, never approval. Incomplete requirements produce **REVIEW_REQUIRED** and do not trigger email.
+A CSV-to-notification pipeline built with FastAPI, PostgreSQL and three n8n workflows. It validates borrower records, evaluates them against versioned loan criteria, and records decisions with supporting evidence. Results mean **POSSIBLY_ELIGIBLE**, never loan approval; incomplete criteria produce **REVIEW_REQUIRED** without email.
 
-The demonstrated local dataset contains 10,000 distinct users, 13,302 outcomes and 3,302 controlled Mailpit captures. SQL reduces the candidate set from 30,000 to 13,302 (55.66%). Local timing varies; this is not a whole-pipeline speedup claim. Products are fictional fixtures. AWS deployment, actual SES receipt, permitted live crawling, browser interaction and recorded demo evidence remain outstanding.
+## Problem
 
-Technical documentation:
+Checking every borrower against every product wastes comparisons and makes decisions difficult to trace. This project separates ingestion, candidate selection, rule evaluation and notification while preserving each upload's history.
 
-- [Architecture](docs/architecture.md) and [Mermaid diagram source](docs/architecture.mmd)
-- [Deployment](docs/deployment.md)
-- [Design decisions](docs/design-decisions.md)
-- [Matching optimization](docs/optimization.md)
-- [Security](docs/security.md)
-- [Lender source review](docs/source-review.md)
-- [Troubleshooting](docs/troubleshooting.md)
+## Main features
 
-See the [verification evidence index](reports/README.md) for report producers and evidence limitations.
+- Signed CSV uploads, row validation and immutable per-job user snapshots.
+- SQL candidate filtering followed by explicit eligibility rules and backend revalidation.
+- Durable workflow dispatch, paged matching and idempotent persistence.
+- An operator dashboard with job-specific results and controlled local email capture.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  UI[Dashboard] -->|signed upload| Storage[MinIO / S3]
-  UI -->|local completion| Queue[PostgreSQL job adapter]
-  Storage -->|AWS path| SQS[SQS + DLQ]
-  Queue --> Ingest[Shared ingestion]
-  SQS --> Ingest
+  UI[Dashboard] --> Storage[MinIO upload]
+  UI --> Jobs[PostgreSQL job queue]
+  Jobs --> Ingest[Ingestion worker]
+  Storage --> Ingest
   Ingest --> DB[(PostgreSQL)]
+  A[n8n A: product discovery] --> DB
   DB --> Outbox[Durable outbox]
-  Outbox --> B[n8n B: SQL + Code rules]
-  B --> Persist[Revalidate and persist]
-  Persist --> DB
-  Outbox -->|after B acknowledgement| C[n8n C]
-  C --> Mail[Allowlisted Mailpit / SES adapter]
-  A[n8n A: gated discovery / fixtures] --> DB
+  Outbox --> B[n8n B: SQL and rules]
+  B --> API[Backend revalidation and persistence]
+  API --> DB
+  Outbox -->|after final B acknowledgement| C[n8n C: notifications]
+  C --> Mail[Mailpit]
 ```
 
-The local queue is a durable job adapter, not an S3 event emulator. The cloud template connects S3 to SQS and the same ingestion logic. n8n B runs the SQL prefilter and advanced rules; the backend checks its proposed decisions before committing them. Only B's final acknowledgement queues C. [Architecture](docs/architecture.md) and [design decisions](docs/design-decisions.md) describe the boundaries.
+The local queue is a durable job adapter. The unverified AWS path uses S3 events and SQS with shared ingestion logic. Matching pages contain up to **1,000 candidates**; cursor and results persist atomically. See [architecture](docs/architecture.md) and [design decisions](docs/design-decisions.md).
 
-## Run locally on Windows
+## Tech stack
 
-Prerequisites: Python 3.12, Node 22+, and Docker Desktop with Linux containers. Keep the supplied `users.csv` in the project root; it is private and Git-ignored.
+Python 3.12, FastAPI, SQLAlchemy/Alembic, PostgreSQL, n8n, MinIO, Mailpit, Docker Compose, and a plain JavaScript frontend. The AWS template targets Lambda, S3 and SQS with separately provisioned private database and n8n infrastructure.
+
+## Quick start with Docker Compose
+
+For a **fresh local installation on Windows**, install Python 3.12, Node 22+ and Docker Desktop with Linux containers:
 
 ```powershell
 py -3.12 -m venv .venv
@@ -49,40 +49,59 @@ $env:PYTHONPATH = 'backend;.'
 .\.venv\Scripts\python.exe scripts/import_n8n.py
 ```
 
-Setup generates local secrets only when `.env` is absent, builds the app, and starts the persistent services. The first MinIO build compiles pinned upstream source and needs network access. Import publishes A/B/C and restarts n8n; wait for its health check before starting a job. The pinned n8n version warns that PostgreSQL 16 receives compatibility support only; production needs a tested supported-version upgrade.
+Setup creates `.env` from [.env.example](.env.example) only when absent, generates local secrets, builds services and starts Compose. The first MinIO build needs network access. Import configures credentials, publishes A/B/C and restarts n8n; wait for healthy services. **Import rotates the local n8n database reader password**, so it is a setup operation, not a routine verification command. Follow [n8n setup](n8n/README.md) for credential details.
 
-Open [dashboard](http://localhost:8000), [n8n](http://localhost:5678), and [Mailpit](http://localhost:8025). Enter `API_TOKEN` from `.env` into the dashboard's password field; it stays in page memory. Run **n8n A: fictional discovery**, then upload `users.csv`. Select the generated job to inspect its counts. Follow [n8n setup](n8n/README.md) for credentials and [troubleshooting](docs/troubleshooting.md) for startup failures.
+Open the [dashboard](http://localhost:8000), [n8n](http://localhost:5678) and [Mailpit](http://localhost:8025). Enter `API_TOKEN` from `.env` into the dashboard; it remains in page memory. Environment configuration includes database/object-storage credentials, `WORKFLOW_SECRET` and a controlled `NOTIFICATION_TEST_INBOX`. Keep `.env` and `users.csv` private and Git-ignored.
 
-## Verify
+For an existing installation, preserve its environment and Compose overrides. The current integration stack uses a separate Mailpit inbox on port **18025**; the fresh-install default is 8025. Routine shutdown is `docker compose down` without deleting volumes. See [troubleshooting](docs/troubleshooting.md).
 
-```powershell
-$env:PYTHONPATH = 'backend;.'
-$env:RUN_MAILPIT_TEST = '1'
-.\.venv\Scripts\python.exe scripts/run_checks.py
-.\.venv\Scripts\python.exe scripts/demo.py --timeout 900
-.\.venv\Scripts\python.exe scripts/recruiter_verify.py
-.\.venv\Scripts\python.exe scripts/benchmark.py
-.\.venv\Scripts\python.exe scripts/verify_workflow_replay.py
-```
+## Upload a CSV and run the workflow
 
-The suite covers lint/types, tests against isolated PostgreSQL schemas, migrations, workflow structure, static Serverless/Compose configuration and frontend build. The original 69 tests are retained. Supplied-file or opted-in service tests skip explicitly when their inputs are unavailable; remote CI is not claimed from a local run.
+1. Keep the supplied `users.csv` in the project root; it is not included in Git.
+2. Run **n8n A: fictional discovery** in the dashboard to load fixture products.
+3. Upload the CSV and select its generated job to inspect ingestion, matching and notification counts.
+4. Inspect the corresponding A/B/C executions in n8n and captured messages in Mailpit.
 
-`demo.py` creates a new upload and verifies actual A/B/C work and job-specific Mailpit Message-IDs. Use `--job-id <id>` to observe an existing dashboard upload without uploading twice. The independent verifier compares persisted decisions with a Cartesian oracle. The benchmark retains five samples, medians and EXPLAIN ANALYZE; production revalidation adds a second SQL pass. See [optimization](docs/optimization.md), the [script index](scripts/README.md), and the [evidence index](reports/README.md).
+Each upload creates new history. Do not repeat the 10,000-user upload just to inspect an existing job. Notifications use the configured test inbox, never CSV recipients. The [script index](scripts/README.md) describes optional demonstration and replay commands.
 
-## Data, API and safety
+## Workflows A, B and C
 
-The ten-table schema stores users as immutable job snapshots. External IDs are unique within a job; matches use job/user/product/version keys. New uploads preserve history, while event replays are idempotent. Product evidence and evaluated criteria are retained. Unknown rules are never treated as satisfied, and no optional LLM is enabled.
+| Export | Responsibility |
+|---|---|
+| [A: product discovery](n8n/workflows/A_loan_product_discovery.json) | Load fictional fixtures; live sources require explicit permission review. |
+| [B: user matching](n8n/workflows/B_user_loan_matching.json) | Select candidates with SQL, evaluate rules in pages, and submit results for backend validation. |
+| [C: notification](n8n/workflows/C_user_notification.json) | Deliver controlled notifications after B finishes, retaining delivery state for reconciliation. |
 
-All demo destinations come from `NOTIFICATION_TEST_INBOX`, never CSV addresses. Mailpit is local SMTP capture, **not AWS SES delivery**. Ambiguous sends require reconciliation rather than blind resend. See [security](docs/security.md) and [source review](docs/source-review.md).
+The [workflow guide](n8n/README.md) explains import, credentials and retries. Unknown rules are not treated as satisfied. Ambiguous email sends require reconciliation; external delivery is not claimed to be exactly once.
 
-[OpenAPI](http://localhost:8000/docs) documents the routes. Public API routes require the operator bearer token; internal routes require the shared workflow header. Useful endpoints are upload initialization/completion, job status, products, match summary, metrics, demo discovery, and `GET /api/dashboard?job_id=<id>`. Numeric summaries outside the job-filtered dashboard are global. This is a local operator UI, not multi-tenant authorization.
+## Matching optimization and measured results
 
-## Deployment and demonstration
+The historical **10,000-user** run reduced **30,000 candidate comparisons to 13,302**, a **55.66% reduction in comparisons**, not runtime. Its 13,302 outcomes and 3,302 job-specific Mailpit captures are retained in the [evidence index](reports/README.md). Timing samples and query plans are explained in [optimization](docs/optimization.md).
 
-[AWS deployment](docs/deployment.md) covers private RDS/n8n connectivity, IAM, costs, Linux packaging and SES prerequisites. The Lambda zip has a local base-container smoke test; the Serverless stack has not been deployed. No zero-cost RDS guarantee is made.
+A separate controlled local integration run on 21 October used **36 synthetic users**, produced **59 oracle-equivalent outcomes** and captured **23 emails** in isolated Mailpit. It verified the updated workflows and preserved historical data; it did not repeat the large dataset or establish a new large-scale performance result. See [integration verification](reports/integration-verification.md).
 
-For a demonstration, follow the local setup and verification commands above. Show a dashboard CSV upload, the corresponding n8n A/B/C executions, job-filtered database results, the measured matching comparison and a received message in Mailpit. **Demo video: pending recording; no link available yet.** Capture real screenshots and video before adding a recording link.
+## Testing and verification
 
-Prepare a **private** GitHub repository only after reviewing staged files. Do not commit `.env`, `users.csv`, local volumes, caches or artifacts. Publication and invitations require approval. The requested collaborators are `ujjwalkala-clickpe`, `HarshSrivastav-Dailype`, `ManishBiswal-clickpe`, and `tushar-clickpe`.
+The latest bounded local regression run passed **133 tests**, with **3 deliberately deselected** (full supplied-data ingestion, supplied-CSV inspection and the SMTP preview test). See [testing commands and scope](docs/testing.md) and the [cleanup verification](reports/recruiter-cleanup.md). Tests use disposable PostgreSQL schemas; no full-dataset reprocessing is needed for this check.
 
-Stop with `docker compose down`. Preserve named volumes for routine shutdown; deleting them destroys local data and n8n configuration. The documentation backup in Downloads is outside this repository and is not changed by setup or cleanup.
+Ruff, MyPy, workflow validators, Compose/static Serverless validation and frontend build are separate checks. Local HTTP/build evidence does not establish browser interaction, remote CI or cloud deployment.
+
+## AWS and local deployment notes
+
+Local Compose and Mailpit have recorded integration evidence. AWS configuration and local Lambda packaging exist, but the cloud stack and real SES delivery remain **unverified**. See [deployment prerequisites](docs/deployment.md).
+
+SES preparation is offline/local only. The latest authenticated account differs from the account in the reported SCP denial; account confirmation and identity/permission checks remain unresolved. No SES message was sent. See the [isolated preparation guide](n8n/ses-test/README.md); account-specific diagnostic reports stay local.
+
+## Known limitations
+
+- Loan products are fictional fixtures; approved live lender crawling is not demonstrated.
+- The dashboard uses an operator bearer token, not multi-tenant authentication. See [security](docs/security.md).
+- Optional Gemini extraction is disabled; paid API behavior remains unverified.
+- Real SES receipt, AWS deployment and recorded browser demonstration remain outstanding.
+- Locally retained assignment instructions permit local deployment; public AWS deployment is a bonus. Live lender discovery and actual SES receipt remain unverified assignment requirements. Submission still needs a final review, video and approved private GitHub publication/access. Requested reviewers are `ujjwalkala-clickpe`, `HarshSrivastav-Dailype`, `ManishBiswal-clickpe` and `tushar-clickpe`.
+
+## Demo video
+
+**[Video link pending recording]**
+
+Show the dashboard upload, A/B/C executions, job-filtered results, comparison reduction and an actual Mailpit capture. Add the recording link after reviewing it for secrets and personal data.

@@ -1,6 +1,6 @@
 .PHONY: up down test benchmark demo
 up:
-	docker compose build api
+	docker compose build
 	docker compose up -d --no-build
 down:
 	docker compose down

@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.db import engine
+from app.llm import qualitative_quotes
 from app.models import CrawlRun, Criteria, Product, now
 
 
@@ -26,6 +27,8 @@ class Extraction(BaseModel):
     evidence: dict[str, str]
     confidence: float = Field(ge=0, le=1)
     unknown_fields: list[str]
+    qualitative_requirements: list[str] = Field(default_factory=list)
+    llm_status: str = "DISABLED"
 
     @field_validator("employment_requirements")
     @classmethod
@@ -122,6 +125,7 @@ def extract(markup: str, source: dict[str, Any]) -> Extraction:
         "age_max",
         "employment_requirements",
     ]
+    quotes, llm_status = qualitative_quotes(text_value, approved=source.get("approved") is True)
     return Extraction(
         lender=source["lender"],
         product_name="Personal Loan",
@@ -129,6 +133,8 @@ def extract(markup: str, source: dict[str, Any]) -> Extraction:
         evidence=evidence,
         confidence=0.5,
         unknown_fields=[key for key in fields if key not in values],
+        qualitative_requirements=quotes,
+        llm_status=llm_status,
         **values,
     )
 
@@ -177,12 +183,17 @@ def store_extraction(
             ]
         }
         criteria["qualitative_requirements"] = (
-            [] if fixture else ["Lender verification and unspecified conditions"]
+            [] if fixture else ["Lender verification and unspecified conditions", *value.qualitative_requirements]
         )
         criteria["evidence"] = {
             key: {"text": text_value, "source_url": str(value.source_url), "retrieved_at": now().isoformat()}
             for key, text_value in value.evidence.items()
         }
+        if value.qualitative_requirements:
+            criteria["evidence"]["qualitative_requirements"] = {
+                "text": "\n".join(value.qualitative_requirements), "source_url": str(value.source_url),
+                "retrieved_at": now().isoformat(), "extraction": "LLM verbatim quotes; not lender verification",
+            }
         db.execute(
             insert(Criteria)
             .values(product_id=product_id, **criteria)

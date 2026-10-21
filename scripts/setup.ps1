@@ -22,7 +22,7 @@ if (-not (Test-Path -LiteralPath '.env')) {
     }
     [IO.File]::WriteAllText((Join-Path $PWD '.env'), $content)
 }
-docker compose build api
+docker compose build
 if ($LASTEXITCODE -ne 0) { throw 'Compose build failed' }
 docker compose up -d --no-build
 if ($LASTEXITCODE -ne 0) { throw 'Compose startup failed' }

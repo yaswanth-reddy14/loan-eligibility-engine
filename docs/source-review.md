@@ -13,3 +13,9 @@ The executable configuration is `n8n/sources.json`, embedded in generated A JSON
 Do not mark a product VERIFIED merely because a parser returns schema-valid JSON. The current live extractor always persists UNVERIFIED and incomplete eligibility, and production matching excludes it. Fixtures are separate, fictional, have embedded evidence and use example.org URLs. Optional LLM extraction is disabled.
 
 After an actual source review, update this register and sources.json, run `scripts/generate_workflows.py`, validate/import the exports, and retain successful live A execution and crawl evidence. No future successful run should be backfilled into today's evidence.
+
+## Re-review on 21 October 2026
+
+No live source was enabled. ICICI robots could not be accessed through the research tool and the candidate general terms URL returned 404; HDFC robots returned 403; Axis robots redirected to axis.bank.in and could not be retrieved. Searches surfaced product-specific terms, which do not establish general automation permission for the eligibility pages. No explicitly permitted alternative providing the required product eligibility data was established in this review. These tool failures are observations, not proof that every ordinary browser request is blocked.
+
+Remaining blockers are affirmative permission or a suitably licensed official feed, source-specific saved response fixtures/tests, verified rate/criterion provenance, and an actual allowed fetch-to-PostgreSQL execution. Accessibility alone does not clear these gates. Sources remain false in `n8n/sources.json`; offline fictional fixtures remain available.

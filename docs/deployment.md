@@ -22,3 +22,9 @@ References: [Lambda partial SQS failures](https://docs.aws.amazon.com/lambda/lat
 ## Local packaging evidence (not deployment)
 
 The revised `scripts/package_lambda.ps1` invokes `scripts/package_lambda.py` and sends build code to the SAM container over stdin, avoiding Windows nested-shell quoting. It caches downloaded wheels in Docker volume `loan-engine-lambda-pip-cache`, mounts sources read-only, and writes `.serverless/loan.zip` (ignored by Git and Docker builds). Run `python scripts/verify_lambda_artifact.py` afterward. `reports/lambda-package.json` records the build image ID/hash; `reports/lambda-artifact.json` records the runtime image ID, source equality, native imports, local ASGI responses and artifact sizes. The manifests record the measured zip and uncompressed sizes for each build. This is a local AWS base-container smoke; it performs no cloud calls and does not validate RDS, IAM, event delivery or SES. The SAM/runtime tags and transitive requirements still need a locked release process.
+
+## Runtime region and optional delivery
+
+Lambda supplies `AWS_REGION`; it is read before the local `AWS_DEFAULT_REGION` fallback. The template no longer attempts to set either reserved key. Static validation rejects known reserved keys in provider and per-function environments; resolved Serverless packaging and actual deployment remain unverified.
+
+For the optional n8n SES transport, follow `n8n/README.md`: use a verified sender/controlled recipient in the same SES region, a least-privilege n8n credential, `EMAIL_DELIVERY_MODE=test`, and `N8N_SES_ENABLED=true` on the private API. The SES node must also be deliberately enabled. The default remains Mailpit. No SES identities, credentials or permissions are provisioned automatically. The SES node sends the HTML body; the service adapter retains HTML and plain text. Actual receipt remains UNVERIFIED.

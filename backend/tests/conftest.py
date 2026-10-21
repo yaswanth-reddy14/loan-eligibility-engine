@@ -38,6 +38,8 @@ def pg(monkeypatch: pytest.MonkeyPatch) -> Iterator[Session]:
         "app.notifications",
         "app.worker",
         "app.discovery",
+        "app.n8n_delivery",
+        "app.matching_pages",
     ]:
         monkeypatch.setattr(module + ".engine", lambda: scoped)
     with Session(scoped) as db:
