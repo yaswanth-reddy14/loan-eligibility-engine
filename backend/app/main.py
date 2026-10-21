@@ -16,8 +16,12 @@ from app.config import settings
 from app.db import session
 from app.discovery import extract, fixture_html, seed_fixtures, store_extraction
 from app.matching import complete_matching, run_matching
+from app.matching_pages import persist_page, progress
 from app.models import Audit, CrawlRun, Job, Match, Notification, Outbox, Product, uid
-from app.notifications import notify
+from app.n8n_delivery import claim as claim_ses
+from app.n8n_delivery import finish as finish_ses
+from app.n8n_delivery import require_ses_gate
+from app.notifications import notify, seed_events, summarize
 from app.storage import s3
 
 app = FastAPI(title="Loan Eligibility Engine", version="1.0.0")
@@ -143,7 +147,12 @@ def job_status(job_id: str, db: Db) -> dict[str, Any]:
 @app.get("/api/dashboard", dependencies=[Depends(authenticated)])
 def dashboard(db: Db, job_id: str | None = None) -> dict[str, Any]:
     recent_jobs = db.scalars(select(Job).order_by(Job.created_at.desc()).limit(20)).all()
-    jobs = [job for job in recent_jobs if job_id is None or job.id == job_id]
+    jobs = list(recent_jobs)
+    if job_id:
+        selected = db.get(Job, job_id)
+        jobs = [selected] if selected else []
+        if selected and all(job.id != selected.id for job in recent_jobs):
+            recent_jobs = [*recent_jobs, selected]  # 20 recent entries plus one explicit selection.
     match_counts = select(Match.status, func.count()).group_by(Match.status)
     notification_counts = select(Notification.status, func.count()).group_by(Notification.status)
     outbox_counts = select(Outbox.status, func.count()).group_by(Outbox.status)
@@ -234,6 +243,23 @@ class Evaluations(WorkflowExecution):
     evaluations: list[Evaluation] = Field(max_length=50000)
 
 
+class PageEvaluations(Evaluations):
+    evaluations: list[Evaluation] = Field(max_length=1000)
+    after_user_id: int = Field(default=0, ge=0)
+    after_product_id: int = Field(default=0, ge=0)
+
+
+@app.get("/internal/matching/{job_id}/progress", dependencies=[Depends(internal)])
+def matching_progress(job_id: str) -> dict[str, Any]:
+    return progress(job_id)
+
+
+@app.post("/internal/matching/{job_id}/page", dependencies=[Depends(internal)])
+def matching_page(job_id: str, value: PageEvaluations) -> dict[str, Any]:
+    return persist_page(job_id, [item.model_dump() for item in value.evaluations], value.execution_id,
+                        value.after_user_id, value.after_product_id)
+
+
 @app.post("/internal/matching/{job_id}", dependencies=[Depends(internal)])
 def matching(job_id: str, value: Evaluations) -> dict[str, Any]:
     return {
@@ -251,6 +277,36 @@ def matching_complete(job_id: str, value: WorkflowExecution) -> dict[str, Any]:
 def notifications(job_id: str, value: WorkflowExecution) -> dict[str, Any]:
     # One request processes at most 100 recipients. Dispatcher repeats until pending=0.
     return {"job_id": job_id, **notify(job_id, execution_id=value.execution_id)}
+
+
+@app.get("/internal/notifications/{job_id}/transport", dependencies=[Depends(internal)])
+def notification_transport(job_id: str) -> dict[str, Any]:
+    if settings().n8n_ses_enabled:
+        require_ses_gate()
+    return {"job_id": job_id, "n8n_ses": settings().n8n_ses_enabled}
+
+
+@app.post("/internal/notifications/{job_id}/claim", dependencies=[Depends(internal)])
+def notification_claim(job_id: str, value: WorkflowExecution) -> dict[str, Any]:
+    return claim_ses(job_id, value.execution_id)
+
+
+class DeliveryReceipt(WorkflowExecution):
+    event_id: str = Field(min_length=1, max_length=36)
+    status: str = Field(pattern="^(SENT|UNKNOWN)$")
+    provider_id: str | None = Field(default=None, min_length=1, max_length=256)
+
+
+@app.post("/internal/notifications/{job_id}/receipt", dependencies=[Depends(internal)])
+def notification_receipt(job_id: str, value: DeliveryReceipt) -> dict[str, Any]:
+    return finish_ses(job_id, value.event_id, value.execution_id, value.status, value.provider_id)
+
+
+@app.post("/internal/notifications/{job_id}/summary", dependencies=[Depends(internal)])
+def notification_summary(job_id: str, value: WorkflowExecution) -> dict[str, Any]:
+    require_ses_gate()
+    seed_events(job_id)
+    return {"job_id": job_id, **summarize(job_id, execution_id=value.execution_id)}
 
 
 @app.post("/internal/discovery/fixtures", dependencies=[Depends(internal)])

@@ -2,7 +2,7 @@
 
 1. Ingestion rejects invalid numerical values, malformed emails, unsupported employment categories, encoding failures and bad headers before matching. `Business` is a distinct normalized BUSINESS category; it is not silently treated as salaried or self-employed.
 2. A parameterized SQL join restricts users to one job and active verified products (plus DEMO_FIXTURE only in demo mode). Income, credit, age bounds and JSONB employment membership eliminate impossible pairs. NULL thresholds preserve uncertain candidates for review rather than manufacturing eligibility.
-3. Shared deterministic advanced evaluation records unknown criteria and qualitative requirements. No optional LLM runs. Unknown values cannot override failed SQL hard rules.
+3. Shared deterministic advanced evaluation records unknown criteria and qualitative requirements. Matching does not call an LLM; optional discovery extraction is separate. Unknown values cannot override failed SQL hard rules.
 4. Match batches use a unique job/user/product/version key. Concurrent or repeated calls are serialized by the job lock and completed audit. Criteria inputs are snapshotted with reasons and uncertainty.
 5. Audit metrics include actual relevant users/products, Cartesian baseline, SQL candidates, advanced candidates, reduction, LLM evaluations (zero), hypothetical calls avoided, pipeline duration and total duration. Since ambiguous candidates are retained, advanced count can equal SQL count. Estimated LLM calls avoided is a hypothetical one-call-per-pair baseline, not actual billed savings.
 
@@ -11,3 +11,9 @@ Run `python scripts/benchmark.py` with PYTHONPATH=backend after a complete suppl
 Indexes exist on users' job ID, income, credit, employment and age, plus match keys and outbox due-state/time. For only three products and 10,000 users, PostgreSQL may correctly choose a sequential scan and nested loop. A database nested-loop plan is not an application Cartesian loop: predicates still execute in PostgreSQL. Do not force indexes or claim an index speedup without a measured comparison. The benchmark JSON is the authoritative execution plan evidence. No fabricated before/after optimization improvement is reported.
 
 A second, independent oracle in `scripts/recruiter_verify.py` implements the bounds directly without calling the production matching functions, and compares every user/product/status tuple with persisted matches. The benchmark alone shares the advanced-rule function with production and therefore would not detect every shared-rule defect.
+
+## Paged workflow verification
+
+Workflow B now uses `(user_id, product_id)` keyset pages of 1,000, shared SQL and the same canonical deterministic record builder. The backend locks the job before validating the exact page and atomically writing matches, cursor and counters. A replayed cursor returns existing progress; a future cursor or changed product fingerprint is rejected. A full page requires another page, including an empty final page for exact multiples. PARTITIONING cannot acknowledge B or enqueue C. Existing completed jobs are replay-compatible. Mid-job criterion changes require a new job; partial records are retained for audit and never notified.
+
+The earlier 10,000-user benchmark is preserved unchanged and measures the pre-pagination one-pass comparison described above. No new latency or whole-pipeline improvement is claimed. Current tests compare tiny PostgreSQL pages against the Cartesian oracle and execute 51,001 synthetic Code-node candidates in bounded pages; this is a correctness check, not a load benchmark. n8n execution history still accumulates page outputs, so total execution size/duration and larger datasets require load qualification.

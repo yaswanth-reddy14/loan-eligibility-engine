@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from app.matching import CANDIDATE_SQL
+from app.matching_pages import PAGE_SQL
 
 
 def node(name, kind, params, x, y=0, version=1):
@@ -84,6 +84,30 @@ def chain(nodes):
     }
 
 
+def boolean_gate(name, expression, x):
+    return node(
+        name,
+        "if",
+        {
+            "conditions": {
+                "options": {"caseSensitive": True, "leftValue": "", "typeValidation": "strict", "version": 2},
+                "conditions": [
+                    {
+                        "id": name,
+                        "leftValue": expression,
+                        "rightValue": True,
+                        "operator": {"type": "boolean", "operation": "true", "singleValue": True},
+                    }
+                ],
+                "combinator": "and",
+            },
+            "options": {},
+        },
+        x,
+        version=2.2,
+    )
+
+
 def main():
     check = "const id=$json.body?.job_id;if(typeof id!=='string'||!/^[-0-9a-f]{36}$/.test(id))throw new Error('Invalid job ID');return [{json:{job_id:id}}];"
     b = [
@@ -105,9 +129,15 @@ def main():
             {
                 "operation": "executeQuery",
                 "query": "WITH candidates AS ("
-                + CANDIDATE_SQL.replace(":job_id", "$1").replace(":demo", "$2")
-                + " LIMIT 50001) SELECT $1::text AS job_id, COALESCE(jsonb_agg(to_jsonb(candidates)), '[]'::jsonb) AS candidates FROM candidates",
-                "options": {"queryReplacement": "={{[$json.job_id, $env.DEMO_MODE === 'true']}}"},
+                + PAGE_SQL.replace(":job_id", "$1")
+                .replace(":demo", "$2")
+                .replace(":after_user_id", "$3")
+                .replace(":after_product_id", "$4")
+                .replace(":page_size", "$5")
+                + ") SELECT $1::text AS job_id, $3::bigint AS after_user_id, $4::integer AS after_product_id, COALESCE(jsonb_agg(to_jsonb(candidates) ORDER BY user_id,product_id), '[]'::jsonb) AS candidates FROM candidates",
+                "options": {
+                    "queryReplacement": "={{[$json.job_id, $env.DEMO_MODE === 'true', $json.after_user_id, $json.after_product_id, $json.page_size]}}"
+                },
             },
             920,
             version=2.6,
@@ -121,9 +151,9 @@ def main():
         ),
         http(
             "Validate and bulk persist",
-            "=http://api:8000/internal/matching/{{$json.job_id}}",
+            "=http://api:8000/internal/matching/{{$json.job_id}}/page",
             1380,
-            body="={{JSON.stringify({evaluations:$json.evaluations,execution_id:$execution.id})}}",
+            body="={{JSON.stringify({...$json,execution_id:$execution.id})}}",
         ),
         node(
             "Validate measured metrics",
@@ -144,7 +174,25 @@ def main():
         )
     )
     b[4]["credentials"] = {"postgres": {"id": "loan-domain-postgres", "name": "Loan domain PostgreSQL"}}
-    workflow("B", "User loan matching", b, chain(b))
+    fetch_progress = http(
+        "Fetch matching progress", "=http://api:8000/internal/matching/{{$json.job_id}}/progress", 800, "GET"
+    )
+    page_required = boolean_gate("Matching page required", "={{$json.more}}", 900)
+    more_pages = boolean_gate("More matching pages", "={{$json.more}}", 1750)
+    b_links = chain([*b[:4], fetch_progress, page_required]) | chain(b[4:8]) | chain([b[7], more_pages])
+    b_links[page_required["name"]] = {
+        "main": [
+            [{"node": b[4]["name"], "type": "main", "index": 0}],
+            [{"node": b[8]["name"], "type": "main", "index": 0}],
+        ]
+    }
+    b_links[more_pages["name"]] = {
+        "main": [
+            [{"node": fetch_progress["name"], "type": "main", "index": 0}],
+            [{"node": b[8]["name"], "type": "main", "index": 0}],
+        ]
+    }
+    workflow("B", "User loan matching", [*b, fetch_progress, page_required, more_pages], b_links)
     c = [
         webhook("C"),
         node("Validate job ID", "code", {"jsCode": check}, 230, version=2),
@@ -164,7 +212,90 @@ def main():
             version=2,
         ),
     ]
-    workflow("C", "User notification", c, chain(c))
+    transport = http(
+        "Select delivery transport",
+        "=http://api:8000/internal/notifications/{{$json.job_id}}/transport",
+        350,
+        "GET",
+    )
+    transport_gate = boolean_gate("Explicit SES test gate", "={{$json.n8n_ses}}", 460)
+    claim = http(
+        "Reserve SES event",
+        "=http://api:8000/internal/notifications/{{$json.job_id}}/claim",
+        690,
+        body="={{JSON.stringify({execution_id:$execution.id})}}",
+    )
+    claim["retryOnFail"] = False
+    ready = boolean_gate("Reserved event ready", "={{$json.ready}}", 920)
+    ses = node(
+        "AWS SES controlled test",
+        "awsSes",
+        {
+            "authentication": "iam",
+            "resource": "email",
+            "operation": "send",
+            "fromEmail": "={{$json.from}}",
+            "toAddresses": "={{[$json.to]}}",
+            "subject": "={{$json.subject}}",
+            "body": "={{$json.html}}",
+            "isBodyHtml": True,
+            "additionalFields": {},
+        },
+        1150,
+    )
+    ses.update(
+        disabled=True,
+        retryOnFail=False,
+        onError="continueErrorOutput",
+        credentials={"aws": {"id": "loan-ses-test", "name": "Loan SES controlled test"}},
+    )
+    receipt = node(
+        "Build SES receipt",
+        "code",
+        {
+            "jsCode": "const event=$('Reserve SES event').first().json;const id=$json.SendEmailResponse?.SendEmailResult?.MessageId ?? $json.MessageId;return [{json:{job_id:event.job_id,event_id:event.event_id,execution_id:$execution.id,status:typeof id==='string'&&id.length?'SENT':'UNKNOWN',provider_id:typeof id==='string'&&id.length?id:null}}];"
+        },
+        1380,
+        version=2,
+    )
+    acknowledge = http(
+        "Persist SES receipt",
+        "=http://api:8000/internal/notifications/{{$json.job_id}}/receipt",
+        1610,
+        body="={{JSON.stringify($json)}}",
+    )
+    summary = http(
+        "Summarize reserved delivery",
+        "=http://api:8000/internal/notifications/{{$json.job_id}}/summary",
+        1150,
+        body="={{JSON.stringify({execution_id:$execution.id})}}",
+    )
+    links = (
+        chain([c[0], c[1], transport, transport_gate])
+        | chain([claim, ready])
+        | chain([ses, receipt, acknowledge, c[3]])
+        | chain([summary, c[3]])
+        | chain([c[2], c[3]])
+    )
+    links[transport_gate["name"]] = {
+        "main": [
+            [{"node": claim["name"], "type": "main", "index": 0}],
+            [{"node": c[2]["name"], "type": "main", "index": 0}],
+        ]
+    }
+    links[ready["name"]] = {
+        "main": [
+            [{"node": ses["name"], "type": "main", "index": 0}],
+            [{"node": summary["name"], "type": "main", "index": 0}],
+        ]
+    }
+    links[ses["name"]]["main"].append([{"node": receipt["name"], "type": "main", "index": 0}])
+    workflow(
+        "C",
+        "User notification",
+        [*c, transport, transport_gate, claim, ready, ses, receipt, acknowledge, summary],
+        links,
+    )
     schedule = node(
         "Daily schedule", "scheduleTrigger", {"rule": {"interval": [{"triggerAtHour": 9}]}}, 0, version=1.2
     )

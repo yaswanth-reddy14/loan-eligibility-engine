@@ -83,6 +83,238 @@
       "parameters": {
         "jsCode": "if($json.sent<0||$json.pending<0)throw new Error('Invalid delivery metrics');return $input.all();"
       }
+    },
+    {
+      "id": "select-delivery-transport",
+      "name": "Select delivery transport",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        350,
+        0
+      ],
+      "parameters": {
+        "url": "=http://api:8000/internal/notifications/{{$json.job_id}}/transport",
+        "method": "GET",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "explicit-ses-test-gate",
+      "name": "Explicit SES test gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Explicit SES test gate",
+              "leftValue": "={{$json.n8n_ses}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "reserve-ses-event",
+      "name": "Reserve SES event",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        690,
+        0
+      ],
+      "parameters": {
+        "url": "=http://api:8000/internal/notifications/{{$json.job_id}}/claim",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({execution_id:$execution.id})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": false,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "reserved-event-ready",
+      "name": "Reserved event ready",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        920,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Reserved event ready",
+              "leftValue": "={{$json.ready}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "aws-ses-controlled-test",
+      "name": "AWS SES controlled test",
+      "type": "n8n-nodes-base.awsSes",
+      "typeVersion": 1,
+      "position": [
+        1150,
+        0
+      ],
+      "parameters": {
+        "authentication": "iam",
+        "resource": "email",
+        "operation": "send",
+        "fromEmail": "={{$json.from}}",
+        "toAddresses": "={{[$json.to]}}",
+        "subject": "={{$json.subject}}",
+        "body": "={{$json.html}}",
+        "isBodyHtml": true,
+        "additionalFields": {}
+      },
+      "disabled": true,
+      "retryOnFail": false,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "aws": {
+          "id": "loan-ses-test",
+          "name": "Loan SES controlled test"
+        }
+      }
+    },
+    {
+      "id": "build-ses-receipt",
+      "name": "Build SES receipt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1380,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const event=$('Reserve SES event').first().json;const id=$json.SendEmailResponse?.SendEmailResult?.MessageId ?? $json.MessageId;return [{json:{job_id:event.job_id,event_id:event.event_id,execution_id:$execution.id,status:typeof id==='string'&&id.length?'SENT':'UNKNOWN',provider_id:typeof id==='string'&&id.length?id:null}}];"
+      }
+    },
+    {
+      "id": "persist-ses-receipt",
+      "name": "Persist SES receipt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1610,
+        0
+      ],
+      "parameters": {
+        "url": "=http://api:8000/internal/notifications/{{$json.job_id}}/receipt",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "summarize-reserved-delivery",
+      "name": "Summarize reserved delivery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1150,
+        0
+      ],
+      "parameters": {
+        "url": "=http://api:8000/internal/notifications/{{$json.job_id}}/summary",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({execution_id:$execution.id})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     }
   ],
   "connections": {
@@ -101,7 +333,80 @@
       "main": [
         [
           {
-            "node": "Grouped allowlisted delivery",
+            "node": "Select delivery transport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select delivery transport": {
+      "main": [
+        [
+          {
+            "node": "Explicit SES test gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reserve SES event": {
+      "main": [
+        [
+          {
+            "node": "Reserved event ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AWS SES controlled test": {
+      "main": [
+        [
+          {
+            "node": "Build SES receipt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build SES receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SES receipt": {
+      "main": [
+        [
+          {
+            "node": "Persist SES receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persist SES receipt": {
+      "main": [
+        [
+          {
+            "node": "Delivery metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize reserved delivery": {
+      "main": [
+        [
+          {
+            "node": "Delivery metrics",
             "type": "main",
             "index": 0
           }
@@ -113,6 +418,42 @@
         [
           {
             "node": "Delivery metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Explicit SES test gate": {
+      "main": [
+        [
+          {
+            "node": "Reserve SES event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Grouped allowlisted delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reserved event ready": {
+      "main": [
+        [
+          {
+            "node": "AWS SES controlled test",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Summarize reserved delivery",
             "type": "main",
             "index": 0
           }

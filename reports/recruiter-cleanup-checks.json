@@ -1,0 +1,84 @@
+[
+  {
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-m",
+      "ruff",
+      "check",
+      "backend",
+      "scripts",
+      "migrations"
+    ],
+    "exit_code": 0,
+    "output": "All checks passed!\n"
+  },
+  {
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-m",
+      "mypy",
+      "backend/app",
+      "scripts/validate_ses_preparation.py"
+    ],
+    "exit_code": 0,
+    "output": "Success: no issues found in 17 source files\n"
+  },
+  {
+    "command": [
+      ".venv/Scripts/python.exe",
+      "scripts/validate_workflows.py"
+    ],
+    "exit_code": 0,
+    "output": "3 connected workflow exports passed structural validation; runtime import is a separate check.\n"
+  },
+  {
+    "command": [
+      ".venv/Scripts/python.exe",
+      "scripts/validate_ses_preparation.py"
+    ],
+    "exit_code": 0,
+    "output": "{\n  \"offline_validation\": \"PASS\",\n  \"live_send_ready\": false,\n  \"candidate_region\": \"ap-south-1\",\n  \"missing\": [\n    \"account/identities\",\n    \"regional verification\",\n    \"credential installation approval\",\n    \"pinned fresh job\",\n    \"send approval\"\n  ]\n}\n"
+  },
+  {
+    "command": [
+      "docker",
+      "compose",
+      "config",
+      "--quiet"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "docker",
+      "compose",
+      "-f",
+      "docker-compose.yml",
+      "-f",
+      "n8n/ses-test/compose.preparation.yml",
+      "--profile",
+      "ses-preparation",
+      "config",
+      "--quiet"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      ".venv/Scripts/python.exe",
+      "scripts/validate_config.py"
+    ],
+    "exit_code": 0,
+    "output": "Serverless YAML and critical static invariants passed. AWS/Serverless resolution remains unverified.\n"
+  },
+  {
+    "command": [
+      "node",
+      "frontend/build.mjs"
+    ],
+    "exit_code": 0,
+    "output": "Dashboard syntax checked and static build created.\n"
+  }
+]

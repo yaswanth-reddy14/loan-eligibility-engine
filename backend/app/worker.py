@@ -30,7 +30,10 @@ def ingestion_tick() -> bool:
     except Exception as exc:
         with Session(engine()) as db, db.begin():
             job = db.scalar(select(Job).where(Job.id == job_id).with_for_update())
-            assert job is not None
+            # Another worker may have completed (or exhausted) this job after our
+            # ingestion transaction rolled back, before this error audit got the lock.
+            if job is None or job.status not in {"READY", "RETRY"}:
+                return True
             job.attempts += 1
             job.status = "FAILED" if job.attempts >= 5 else "RETRY"
             job.error_summary = (

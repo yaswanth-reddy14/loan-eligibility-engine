@@ -1,0 +1,477 @@
+{
+  "id": "loan-workflow-c-ses-preparation",
+  "name": "C SES single-recipient preparation (DISABLED)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "manual-ses-preparation",
+      "name": "Manual controlled test",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "pinned-approved-test-job",
+      "name": "Pinned approved test job",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        230,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const plan = {\"phase\":\"PREPARATION_ONLY\",\"approved\":false,\"region\":\"ap-south-1\",\"account_id\":null,\"sender\":null,\"recipient\":null,\"job_id\":null,\"max_messages\":1,\"credential_installed\":false,\"sender_verified_in_region\":false,\"recipient_verified_in_region\":false,\"sandbox_status\":\"UNVERIFIED\",\"production_workflow_change_allowed\":false};\nif(plan.approved!==true)throw new Error('SES send approval is absent; preparation only');if(plan.region!=='ap-south-1'||!['SANDBOX','PRODUCTION'].includes(plan.sandbox_status))throw new Error('Confirm region and sandbox status');if(plan.max_messages!==1||!plan.credential_installed||!plan.sender_verified_in_region||!plan.recipient_verified_in_region)throw new Error('SES preparation prerequisites incomplete');if(!/^[0-9]{12}$/.test(plan.account_id||'')||!/^[-0-9a-f]{36}$/.test(plan.job_id||''))throw new Error('Pin one account and one job');for(const field of ['sender','recipient'])if(typeof plan[field]!=='string'||!/^([^\\s@,;<>]+)@([^\\s@,;<>]+)$/.test(plan[field]))throw new Error('Pin one exact sender and recipient');return [{json:{job_id:plan.job_id,sender:plan.sender,recipient:plan.recipient,region:plan.region}}];"
+      }
+    },
+    {
+      "id": "fetch-single-user-job",
+      "name": "Fetch single-user job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        0
+      ],
+      "parameters": {
+        "url": "=http://ses-test-api:8000/internal/jobs/{{$json.job_id}}",
+        "method": "GET",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "require-one-completed-synthetic-user",
+      "name": "Require one completed synthetic user",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        690,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const plan=$('Pinned approved test job').first().json;if($json.id!==plan.job_id||$json.status!=='COMPLETED'||$json.accepted!==1||$json.rejected!==0)throw new Error('Expected one completed single-user job');return [{json:{job_id:plan.job_id}}];"
+      }
+    },
+    {
+      "id": "select-delivery-transport",
+      "name": "Select delivery transport",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        0
+      ],
+      "parameters": {
+        "url": "=http://ses-test-api:8000/internal/notifications/{{$json.job_id}}/transport",
+        "method": "GET",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "require-explicit-ses-transport",
+      "name": "Require explicit SES transport",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1150,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const plan=$('Pinned approved test job').first().json;if($json.n8n_ses!==true||$json.job_id!==plan.job_id)throw new Error('SES test transport is not enabled for pinned job');return [{json:{job_id:plan.job_id}}];"
+      }
+    },
+    {
+      "id": "reserve-ses-event",
+      "name": "Reserve SES event",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1380,
+        0
+      ],
+      "parameters": {
+        "url": "=http://ses-test-api:8000/internal/notifications/{{$json.job_id}}/claim",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({execution_id:$execution.id})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": false,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "reserved-event-ready",
+      "name": "Reserved event ready",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1610,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Reserved event ready",
+              "leftValue": "={{$json.ready}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "aws-ses-controlled-test",
+      "name": "AWS SES controlled test",
+      "type": "n8n-nodes-base.awsSes",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        0
+      ],
+      "parameters": {
+        "authentication": "iam",
+        "resource": "email",
+        "operation": "send",
+        "fromEmail": "={{$json.from}}",
+        "toAddresses": "={{[$json.to]}}",
+        "subject": "={{$json.subject}}",
+        "body": "={{$json.html}}",
+        "isBodyHtml": true,
+        "additionalFields": {}
+      },
+      "disabled": true,
+      "retryOnFail": false,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "aws": {
+          "id": "loan-ses-single-test",
+          "name": "Loan SES single-recipient test (not installed)"
+        }
+      }
+    },
+    {
+      "id": "build-ses-receipt",
+      "name": "Build SES receipt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2070,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const event=$('Reserve SES event').first().json;const id=$json.SendEmailResponse?.SendEmailResult?.MessageId ?? $json.MessageId;return [{json:{job_id:event.job_id,event_id:event.event_id,execution_id:$execution.id,status:typeof id==='string'&&id.length?'SENT':'UNKNOWN',provider_id:typeof id==='string'&&id.length?id:null}}];"
+      }
+    },
+    {
+      "id": "persist-ses-receipt",
+      "name": "Persist SES receipt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2300,
+        0
+      ],
+      "parameters": {
+        "url": "=http://ses-test-api:8000/internal/notifications/{{$json.job_id}}/receipt",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json)}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "summarize-reserved-delivery",
+      "name": "Summarize reserved delivery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2530,
+        0
+      ],
+      "parameters": {
+        "url": "=http://ses-test-api:8000/internal/notifications/{{$json.job_id}}/summary",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({execution_id:$execution.id})}}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "loan-internal-header",
+          "name": "Loan internal header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "delivery-metrics",
+      "name": "Delivery metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2760,
+        0
+      ],
+      "parameters": {
+        "jsCode": "if($json.sent<0||$json.pending<0)throw new Error('Invalid delivery metrics');return $input.all();"
+      }
+    },
+    {
+      "id": "verify-reserved-single-recipient",
+      "name": "Verify reserved single recipient",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2990,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const plan=$('Pinned approved test job').first().json;if($json.ready!==true||$json.job_id!==plan.job_id||$json.to!==plan.recipient||$json.from!==plan.sender||typeof $json.event_id!=='string')throw new Error('Reserved event differs from approved sender, recipient or job');return $input.all();"
+      }
+    }
+  ],
+  "connections": {
+    "Manual controlled test": {
+      "main": [
+        [
+          {
+            "node": "Pinned approved test job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinned approved test job": {
+      "main": [
+        [
+          {
+            "node": "Fetch single-user job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch single-user job": {
+      "main": [
+        [
+          {
+            "node": "Require one completed synthetic user",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Require one completed synthetic user": {
+      "main": [
+        [
+          {
+            "node": "Select delivery transport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select delivery transport": {
+      "main": [
+        [
+          {
+            "node": "Require explicit SES transport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Require explicit SES transport": {
+      "main": [
+        [
+          {
+            "node": "Reserve SES event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reserve SES event": {
+      "main": [
+        [
+          {
+            "node": "Reserved event ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reserved event ready": {
+      "main": [
+        [
+          {
+            "node": "Verify reserved single recipient",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Summarize reserved delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify reserved single recipient": {
+      "main": [
+        [
+          {
+            "node": "AWS SES controlled test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AWS SES controlled test": {
+      "main": [
+        [
+          {
+            "node": "Build SES receipt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build SES receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SES receipt": {
+      "main": [
+        [
+          {
+            "node": "Persist SES receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persist SES receipt": {
+      "main": [
+        [
+          {
+            "node": "Delivery metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize reserved delivery": {
+      "main": [
+        [
+          {
+            "node": "Delivery metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "executionTimeout": 120
+  },
+  "pinData": {},
+  "tags": []
+}

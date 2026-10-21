@@ -1,0 +1,2260 @@
+{
+  "status": "PASS",
+  "approval": "Explicit user approval for controlled plan; <=24 isolated Mailpit captures; no historical replay or cloud actions.",
+  "commands": [
+    {
+      "argv": [
+        "docker",
+        "image",
+        "tag",
+        "sha256:92ea277eebadc69dd17d134a67eae84d6486d4e3525d4373b4511149e7efe72e",
+        "loan-engine-app:pre-integration-20261021"
+      ],
+      "exit_code": 0,
+      "seconds": 0.19
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "build",
+        "api"
+      ],
+      "exit_code": 0,
+      "seconds": 10.87
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "up",
+        "-d",
+        "--no-deps",
+        "--no-build",
+        "integration-mailpit"
+      ],
+      "exit_code": 0,
+      "seconds": 1.77
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "stop",
+        "dispatcher",
+        "ingestion-worker",
+        "n8n"
+      ],
+      "exit_code": 0,
+      "seconds": 5.87
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "up",
+        "-d",
+        "--no-deps",
+        "--no-build",
+        "api"
+      ],
+      "exit_code": 0,
+      "seconds": 3.46
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "exec",
+        "-T",
+        "api",
+        "python",
+        "-c",
+        "from app.config import settings; from app.matching_pages import PAGE_SIZE; c=settings(); assert c.email_delivery_mode=='preview' and not c.n8n_ses_enabled and not c.llm_enabled and c.smtp_host=='integration-mailpit' and c.smtp_port==1025 and c.demo_mode and not c.ses_sender and not c.gemini_api_key; assert PAGE_SIZE==1000; print('Runtime safety flags and default page size verified')"
+      ],
+      "exit_code": 0,
+      "seconds": 2.36
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "run",
+        "--rm",
+        "--no-deps",
+        "--entrypoint",
+        "n8n",
+        "n8n",
+        "import:workflow",
+        "--separate",
+        "--input=/workflows/workflows"
+      ],
+      "exit_code": 0,
+      "seconds": 15.82
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "run",
+        "--rm",
+        "--no-deps",
+        "--entrypoint",
+        "n8n",
+        "n8n",
+        "publish:workflow",
+        "--id=loan-workflow-a"
+      ],
+      "exit_code": 0,
+      "seconds": 8.75
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "run",
+        "--rm",
+        "--no-deps",
+        "--entrypoint",
+        "n8n",
+        "n8n",
+        "publish:workflow",
+        "--id=loan-workflow-b"
+      ],
+      "exit_code": 0,
+      "seconds": 10.03
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "run",
+        "--rm",
+        "--no-deps",
+        "--entrypoint",
+        "n8n",
+        "n8n",
+        "publish:workflow",
+        "--id=loan-workflow-c"
+      ],
+      "exit_code": 0,
+      "seconds": 11.33
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "up",
+        "-d",
+        "--no-deps",
+        "--no-build",
+        "n8n"
+      ],
+      "exit_code": 0,
+      "seconds": 1.22
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "up",
+        "-d",
+        "--no-deps",
+        "--no-build",
+        "ingestion-worker"
+      ],
+      "exit_code": 0,
+      "seconds": 2.41
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "-f",
+        "<private-backup>\\boundary-compose.yml",
+        "up",
+        "-d",
+        "--no-deps",
+        "--no-build",
+        "api"
+      ],
+      "exit_code": 0,
+      "seconds": 2.98
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "up",
+        "-d",
+        "--no-deps",
+        "--no-build",
+        "api"
+      ],
+      "exit_code": 0,
+      "seconds": 2.41
+    },
+    {
+      "argv": [
+        "docker",
+        "compose",
+        "-f",
+        "C:\\Users\\DELL\\Desktop\\loan-eligibility-engine\\docker-compose.yml",
+        "-f",
+        "<private-backup>\\integration-compose.yml",
+        "up",
+        "-d",
+        "--no-deps",
+        "--no-build",
+        "dispatcher"
+      ],
+      "exit_code": 0,
+      "seconds": 1.72
+    }
+  ],
+  "stages": {
+    "immediate_preservation_gate": "PASS",
+    "build": "PASS",
+    "isolated_mailpit_start": "PASS",
+    "api_install": "PASS",
+    "workflow_install": "PASS",
+    "installed_graph_and_credential_verification": "PASS",
+    "workflow_A": {
+      "status": "PASS",
+      "execution_id": 304,
+      "fixture_crawls": [
+        {
+          "source_url": "https://example.org/demo/incomplete",
+          "status": "FIXTURE",
+          "detail": "Schema validated; source evidence retained; n8n execution 304"
+        },
+        {
+          "source_url": "https://example.org/demo/independent",
+          "status": "FIXTURE",
+          "detail": "Schema validated; source evidence retained; n8n execution 304"
+        },
+        {
+          "source_url": "https://example.org/demo/salaried",
+          "status": "FIXTURE",
+          "detail": "Schema validated; source evidence retained; n8n execution 304"
+        }
+      ]
+    },
+    "workers_install": "PASS",
+    "boundary_api_command": "PASS",
+    "default_api_command": "PASS",
+    "dispatcher_recovery": "PASS",
+    "default_pagination": "PASS",
+    "exact_boundary": "PASS",
+    "partial_final_page": "PASS",
+    "independent_oracle": "PASS",
+    "synthetic_only_replay": "PASS",
+    "mailpit_notification_verification": "PASS",
+    "historical_preservation": "PASS",
+    "regression": "PASS",
+    "final_health_and_default_page_size": "PASS"
+  },
+  "synthetic_jobs": [
+    {
+      "label": "default",
+      "job_id": "575961ba-0692-4d8b-8ab0-43dc4105454e",
+      "csv_sha256": "e0826233d7e541a63d8a3e4b063ca68c59e89a5d5efef8d882d950cb969d7c2b",
+      "page_size": 1000,
+      "status": "PASS",
+      "accepted": 12,
+      "rejected": 0,
+      "object": {
+        "file_key": "uploads/575961ba-0692-4d8b-8ab0-43dc4105454e/users.csv",
+        "object_version": "8419c38a-b8ee-47d0-9ef7-09f259a667c7",
+        "checksum": "e0826233d7e541a63d8a3e4b063ca68c59e89a5d5efef8d882d950cb969d7c2b",
+        "size": 1098
+      },
+      "outcomes": {
+        "REVIEW_REQUIRED": 12,
+        "POSSIBLY_ELIGIBLE": 8
+      },
+      "matches": 20,
+      "notifications": 8,
+      "page_sizes": [
+        20
+      ],
+      "independent_oracle_equal": true,
+      "duplicate_matches": 0,
+      "B_execution_id": 305,
+      "C_execution_id": 306,
+      "B_metrics": {
+        "matching_version": "deterministic-v1",
+        "matching_mode": "keyset-pages",
+        "total_users": 12,
+        "total_active_products": 3,
+        "naive_candidates": 36,
+        "sql_candidates": 20,
+        "advanced_candidates": 20,
+        "matches_created": 20,
+        "llm_evaluations": 0,
+        "estimated_llm_calls_avoided": 36,
+        "reduction_percentage": 44.444,
+        "matching_seconds": 0.05624249700031214,
+        "candidate_pipeline_seconds": 0.05624249700031214,
+        "sql_execution_seconds": 0.006657644999904733,
+        "sql_timing_scope": "backend page execute plus fetch; excludes n8n and delivery",
+        "sql_prefilter_passes": 2,
+        "page_count": 1,
+        "cursor": [
+          70012,
+          1
+        ],
+        "product_fingerprint": "6c1d805571d9425581a4c391e102519115bdf69af4a46d4314de198423a5941e",
+        "persisted_by_n8n_execution_id": "305",
+        "completed_by_n8n_execution_id": "305"
+      },
+      "captures": [
+        {
+          "event_id": "0ba9a256-a190-4c03-8d42-7d944b7f7eef",
+          "capture_id": "jvXicXFjqnMsHHRwFG8n8f",
+          "message_id": "<0ba9a256-a190-4c03-8d42-7d944b7f7eef@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "23a79c0b-6004-438f-ace8-7d9e7e261a4b",
+          "capture_id": "Wmv2gdhY4aakj6VoBGQ4hB",
+          "message_id": "<23a79c0b-6004-438f-ace8-7d9e7e261a4b@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "2271c9a4-5619-41c2-b2c5-eaaa4ee39ab8",
+          "capture_id": "JnuQsDLYXBUXxe8HoLRLP7",
+          "message_id": "<2271c9a4-5619-41c2-b2c5-eaaa4ee39ab8@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "61f599ac-fa73-429d-87c7-91f00b83932e",
+          "capture_id": "LRNoxA2JmuthstuEnSzwSS",
+          "message_id": "<61f599ac-fa73-429d-87c7-91f00b83932e@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "678329a8-4a72-4216-b0b6-117565bb1095",
+          "capture_id": "KvF3XHKNwnNCoudaacAAsA",
+          "message_id": "<678329a8-4a72-4216-b0b6-117565bb1095@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "08c4fbdb-bae3-43b2-a7f0-31a68a346d9d",
+          "capture_id": "U8QTZkb6K5Zp5Ar5erbbEE",
+          "message_id": "<08c4fbdb-bae3-43b2-a7f0-31a68a346d9d@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "d8eac540-f4ce-4f42-b816-074fcec9c2c3",
+          "capture_id": "ctGFDfGtNLMhY3tkQGLsxk",
+          "message_id": "<d8eac540-f4ce-4f42-b816-074fcec9c2c3@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "d04d605e-4f80-4537-a64c-12d8055158f2",
+          "capture_id": "avtN2AQ3dwsZAjJHgG5BDQ",
+          "message_id": "<d04d605e-4f80-4537-a64c-12d8055158f2@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        }
+      ]
+    },
+    {
+      "label": "exact",
+      "job_id": "e289205a-f8a0-407a-83de-6d9ac4085ea4",
+      "csv_sha256": "e0826233d7e541a63d8a3e4b063ca68c59e89a5d5efef8d882d950cb969d7c2b",
+      "page_size": 5,
+      "status": "PASS",
+      "accepted": 12,
+      "rejected": 0,
+      "object": {
+        "file_key": "uploads/e289205a-f8a0-407a-83de-6d9ac4085ea4/users.csv",
+        "object_version": "3fc04b34-b19d-4d10-a9b6-20d6b79e5aff",
+        "checksum": "e0826233d7e541a63d8a3e4b063ca68c59e89a5d5efef8d882d950cb969d7c2b",
+        "size": 1098
+      },
+      "outcomes": {
+        "POSSIBLY_ELIGIBLE": 8,
+        "REVIEW_REQUIRED": 12
+      },
+      "matches": 20,
+      "notifications": 8,
+      "page_sizes": [
+        5,
+        5,
+        5,
+        5,
+        0
+      ],
+      "independent_oracle_equal": true,
+      "duplicate_matches": 0,
+      "B_execution_id": 307,
+      "C_execution_id": 308,
+      "B_metrics": {
+        "matching_version": "deterministic-v1",
+        "matching_mode": "keyset-pages",
+        "total_users": 12,
+        "total_active_products": 3,
+        "naive_candidates": 36,
+        "sql_candidates": 20,
+        "advanced_candidates": 20,
+        "matches_created": 20,
+        "llm_evaluations": 0,
+        "estimated_llm_calls_avoided": 36,
+        "reduction_percentage": 44.444,
+        "matching_seconds": 0.11352374400030385,
+        "candidate_pipeline_seconds": 0.11352374400030385,
+        "sql_execution_seconds": 0.02421179500015569,
+        "sql_timing_scope": "backend page execute plus fetch; excludes n8n and delivery",
+        "sql_prefilter_passes": 2,
+        "page_count": 5,
+        "cursor": [
+          70024,
+          1
+        ],
+        "product_fingerprint": "6c1d805571d9425581a4c391e102519115bdf69af4a46d4314de198423a5941e",
+        "persisted_by_n8n_execution_id": "307",
+        "completed_by_n8n_execution_id": "307"
+      },
+      "captures": [
+        {
+          "event_id": "3c8810f2-a0da-4280-b09a-7938d3198e48",
+          "capture_id": "RiU8CBW2V8egEMXjv3hT7Y",
+          "message_id": "<3c8810f2-a0da-4280-b09a-7938d3198e48@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "dd8c0efe-290f-4a12-8f40-c5878f3d56f1",
+          "capture_id": "aTc9p3f5xN3pLnfmxqcaiC",
+          "message_id": "<dd8c0efe-290f-4a12-8f40-c5878f3d56f1@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "0fd22076-36e2-4c09-9e80-d8a10be5fdba",
+          "capture_id": "BdBtzU7yjdKr9HtapgJYge",
+          "message_id": "<0fd22076-36e2-4c09-9e80-d8a10be5fdba@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "5f461641-87ce-4fc0-8f7f-ad652e75567a",
+          "capture_id": "jsBbSEU2idHpYu2u4RUSYW",
+          "message_id": "<5f461641-87ce-4fc0-8f7f-ad652e75567a@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "c08e0247-d8d2-487c-8100-71a4abdcdb37",
+          "capture_id": "2Av3mUvEeNA7epzJK96hfN",
+          "message_id": "<c08e0247-d8d2-487c-8100-71a4abdcdb37@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "91661ff1-4d10-427d-8fac-dd4616559255",
+          "capture_id": "abUHyFbeKeTMEYpBQgiJv6",
+          "message_id": "<91661ff1-4d10-427d-8fac-dd4616559255@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "b72ccd28-1154-4496-b439-7dfaee5a41ee",
+          "capture_id": "2PU5W5ayRJLgBLFsZUNmgS",
+          "message_id": "<b72ccd28-1154-4496-b439-7dfaee5a41ee@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "48cc4242-b10d-4d04-9d4a-84d342d52842",
+          "capture_id": "eCkZeRTP2zRTMuakUgoMAh",
+          "message_id": "<48cc4242-b10d-4d04-9d4a-84d342d52842@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        }
+      ]
+    },
+    {
+      "label": "partial",
+      "job_id": "38406b91-76ae-4aa7-90ea-adb7c2fada9b",
+      "csv_sha256": "6c98e64da07546e69a2da13dad1417e100fe9df143fbde4e9249078c4928fdde",
+      "page_size": 5,
+      "status": "PASS",
+      "accepted": 12,
+      "rejected": 0,
+      "object": {
+        "file_key": "uploads/38406b91-76ae-4aa7-90ea-adb7c2fada9b/users.csv",
+        "object_version": "265928bd-b2d1-4ea1-abcd-38013e9dd6f7",
+        "checksum": "6c98e64da07546e69a2da13dad1417e100fe9df143fbde4e9249078c4928fdde",
+        "size": 1098
+      },
+      "outcomes": {
+        "REVIEW_REQUIRED": 12,
+        "POSSIBLY_ELIGIBLE": 7
+      },
+      "matches": 19,
+      "notifications": 7,
+      "page_sizes": [
+        5,
+        5,
+        5,
+        4
+      ],
+      "independent_oracle_equal": true,
+      "duplicate_matches": 0,
+      "B_execution_id": 309,
+      "C_execution_id": 310,
+      "B_metrics": {
+        "matching_version": "deterministic-v1",
+        "matching_mode": "keyset-pages",
+        "total_users": 12,
+        "total_active_products": 3,
+        "naive_candidates": 36,
+        "sql_candidates": 19,
+        "advanced_candidates": 19,
+        "matches_created": 19,
+        "llm_evaluations": 0,
+        "estimated_llm_calls_avoided": 36,
+        "reduction_percentage": 47.222,
+        "matching_seconds": 0.06518696499961152,
+        "candidate_pipeline_seconds": 0.06518696499961152,
+        "sql_execution_seconds": 0.01570833499999935,
+        "sql_timing_scope": "backend page execute plus fetch; excludes n8n and delivery",
+        "sql_prefilter_passes": 2,
+        "page_count": 4,
+        "cursor": [
+          70036,
+          1
+        ],
+        "product_fingerprint": "6c1d805571d9425581a4c391e102519115bdf69af4a46d4314de198423a5941e",
+        "persisted_by_n8n_execution_id": "309",
+        "completed_by_n8n_execution_id": "309"
+      },
+      "captures": [
+        {
+          "event_id": "be740300-71b4-4dad-9746-e0ea2d70038a",
+          "capture_id": "SSuu6dFGNpZ7kchZMySLfC",
+          "message_id": "<be740300-71b4-4dad-9746-e0ea2d70038a@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "6b5b3d72-f3d2-4365-bbfc-cc1b77d75a74",
+          "capture_id": "cb8ArU9E84LoNx8xVaMrsh",
+          "message_id": "<6b5b3d72-f3d2-4365-bbfc-cc1b77d75a74@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "875a5219-d729-4778-b344-671432e7d092",
+          "capture_id": "DHxpbZq43atc2Azk3rHZSx",
+          "message_id": "<875a5219-d729-4778-b344-671432e7d092@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "fe13e19b-d13d-4c6e-9f14-5085ffabe367",
+          "capture_id": "67n6r6DK4gkeY29GMsDphg",
+          "message_id": "<fe13e19b-d13d-4c6e-9f14-5085ffabe367@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "f137b212-c541-4fd9-bfc0-ca0c573c1fe4",
+          "capture_id": "PbFo37J5SeZ8v4x7iwUguP",
+          "message_id": "<f137b212-c541-4fd9-bfc0-ca0c573c1fe4@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "a0d04ed0-a47b-4f6b-8cce-28d3f2abd9d6",
+          "capture_id": "WxVNzKFxT2kS3eX7VuJ8hD",
+          "message_id": "<a0d04ed0-a47b-4f6b-8cce-28d3f2abd9d6@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        },
+        {
+          "event_id": "936ec41a-eeeb-495c-9324-16f612c4fbb3",
+          "capture_id": "UXsZ8xdDg4QzJbaUgajhvU",
+          "message_id": "<936ec41a-eeeb-495c-9324-16f612c4fbb3@loan.test>",
+          "recipient_matches_controlled_inbox": true,
+          "personalization_correct": true
+        }
+      ]
+    }
+  ],
+  "executions": [
+    {
+      "id": 304,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-a",
+      "version_id": "09c6bfbd-9886-4c21-91db-94219d453bd0",
+      "nodes": {
+        "Authenticated fixture discovery": [
+          {
+            "status": "success",
+            "milliseconds": 6
+          }
+        ],
+        "Fixture source configuration": [
+          {
+            "status": "success",
+            "milliseconds": 217
+          }
+        ],
+        "Fetch fictional source HTML": [
+          {
+            "status": "success",
+            "milliseconds": 168
+          }
+        ],
+        "Normalize fixture HTML": [
+          {
+            "status": "success",
+            "milliseconds": 46
+          }
+        ],
+        "Extract validate and upsert fictional products": [
+          {
+            "status": "success",
+            "milliseconds": 367
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:13:18.049000+00:00",
+      "stopped_at": "2026-10-21 06:13:18.925000+00:00"
+    },
+    {
+      "id": 305,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-b",
+      "version_id": "c090133d-c946-4154-9fcb-e7b0cb126d81",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 0
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 20
+          }
+        ],
+        "Fetch completed job": [
+          {
+            "status": "success",
+            "milliseconds": 33
+          }
+        ],
+        "Require completed ingestion": [
+          {
+            "status": "success",
+            "milliseconds": 10
+          }
+        ],
+        "Fetch matching progress": [
+          {
+            "status": "success",
+            "milliseconds": 36
+          }
+        ],
+        "Matching page required": [
+          {
+            "status": "success",
+            "milliseconds": 9
+          }
+        ],
+        "SQL structured candidate prefilter": [
+          {
+            "status": "success",
+            "milliseconds": 110
+          }
+        ],
+        "Advanced deterministic rules": [
+          {
+            "status": "success",
+            "milliseconds": 13
+          }
+        ],
+        "Validate and bulk persist": [
+          {
+            "status": "success",
+            "milliseconds": 101
+          }
+        ],
+        "Validate measured metrics": [
+          {
+            "status": "success",
+            "milliseconds": 10
+          }
+        ],
+        "More matching pages": [
+          {
+            "status": "success",
+            "milliseconds": 2
+          }
+        ],
+        "Acknowledge B and queue C": [
+          {
+            "status": "success",
+            "milliseconds": 49
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:13:42.081000+00:00",
+      "stopped_at": "2026-10-21 06:13:42.583000+00:00"
+    },
+    {
+      "id": 306,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-c",
+      "version_id": "9ab34225-0629-470b-8eda-8156fd1df182",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 1
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 12
+          }
+        ],
+        "Select delivery transport": [
+          {
+            "status": "success",
+            "milliseconds": 33
+          }
+        ],
+        "Explicit SES test gate": [
+          {
+            "status": "success",
+            "milliseconds": 6
+          }
+        ],
+        "Grouped allowlisted delivery": [
+          {
+            "status": "success",
+            "milliseconds": 460
+          }
+        ],
+        "Delivery metrics": [
+          {
+            "status": "success",
+            "milliseconds": 9
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:13:44.885000+00:00",
+      "stopped_at": "2026-10-21 06:13:45.499000+00:00"
+    },
+    {
+      "id": 307,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-b",
+      "version_id": "c090133d-c946-4154-9fcb-e7b0cb126d81",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 0
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 21
+          }
+        ],
+        "Fetch completed job": [
+          {
+            "status": "success",
+            "milliseconds": 33
+          }
+        ],
+        "Require completed ingestion": [
+          {
+            "status": "success",
+            "milliseconds": 17
+          }
+        ],
+        "Fetch matching progress": [
+          {
+            "status": "success",
+            "milliseconds": 28
+          },
+          {
+            "status": "success",
+            "milliseconds": 29
+          },
+          {
+            "status": "success",
+            "milliseconds": 33
+          },
+          {
+            "status": "success",
+            "milliseconds": 28
+          },
+          {
+            "status": "success",
+            "milliseconds": 27
+          }
+        ],
+        "Matching page required": [
+          {
+            "status": "success",
+            "milliseconds": 3
+          },
+          {
+            "status": "success",
+            "milliseconds": 3
+          },
+          {
+            "status": "success",
+            "milliseconds": 3
+          },
+          {
+            "status": "success",
+            "milliseconds": 3
+          },
+          {
+            "status": "success",
+            "milliseconds": 5
+          }
+        ],
+        "SQL structured candidate prefilter": [
+          {
+            "status": "success",
+            "milliseconds": 43
+          },
+          {
+            "status": "success",
+            "milliseconds": 16
+          },
+          {
+            "status": "success",
+            "milliseconds": 16
+          },
+          {
+            "status": "success",
+            "milliseconds": 14
+          },
+          {
+            "status": "success",
+            "milliseconds": 14
+          }
+        ],
+        "Advanced deterministic rules": [
+          {
+            "status": "success",
+            "milliseconds": 15
+          },
+          {
+            "status": "success",
+            "milliseconds": 14
+          },
+          {
+            "status": "success",
+            "milliseconds": 20
+          },
+          {
+            "status": "success",
+            "milliseconds": 16
+          },
+          {
+            "status": "success",
+            "milliseconds": 12
+          }
+        ],
+        "Validate and bulk persist": [
+          {
+            "status": "success",
+            "milliseconds": 84
+          },
+          {
+            "status": "success",
+            "milliseconds": 55
+          },
+          {
+            "status": "success",
+            "milliseconds": 55
+          },
+          {
+            "status": "success",
+            "milliseconds": 50
+          },
+          {
+            "status": "success",
+            "milliseconds": 46
+          }
+        ],
+        "Validate measured metrics": [
+          {
+            "status": "success",
+            "milliseconds": 11
+          },
+          {
+            "status": "success",
+            "milliseconds": 15
+          },
+          {
+            "status": "success",
+            "milliseconds": 12
+          },
+          {
+            "status": "success",
+            "milliseconds": 12
+          },
+          {
+            "status": "success",
+            "milliseconds": 14
+          }
+        ],
+        "More matching pages": [
+          {
+            "status": "success",
+            "milliseconds": 2
+          },
+          {
+            "status": "success",
+            "milliseconds": 2
+          },
+          {
+            "status": "success",
+            "milliseconds": 4
+          },
+          {
+            "status": "success",
+            "milliseconds": 3
+          },
+          {
+            "status": "success",
+            "milliseconds": 3
+          }
+        ],
+        "Acknowledge B and queue C": [
+          {
+            "status": "success",
+            "milliseconds": 42
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:14:36.355000+00:00",
+      "stopped_at": "2026-10-21 06:14:37.348000+00:00"
+    },
+    {
+      "id": 308,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-c",
+      "version_id": "9ab34225-0629-470b-8eda-8156fd1df182",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 1
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 13
+          }
+        ],
+        "Select delivery transport": [
+          {
+            "status": "success",
+            "milliseconds": 27
+          }
+        ],
+        "Explicit SES test gate": [
+          {
+            "status": "success",
+            "milliseconds": 3
+          }
+        ],
+        "Grouped allowlisted delivery": [
+          {
+            "status": "success",
+            "milliseconds": 505
+          }
+        ],
+        "Delivery metrics": [
+          {
+            "status": "success",
+            "milliseconds": 14
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:14:40.457000+00:00",
+      "stopped_at": "2026-10-21 06:14:41.187000+00:00"
+    },
+    {
+      "id": 309,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-b",
+      "version_id": "c090133d-c946-4154-9fcb-e7b0cb126d81",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 1
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 27
+          }
+        ],
+        "Fetch completed job": [
+          {
+            "status": "success",
+            "milliseconds": 46
+          }
+        ],
+        "Require completed ingestion": [
+          {
+            "status": "success",
+            "milliseconds": 24
+          }
+        ],
+        "Fetch matching progress": [
+          {
+            "status": "success",
+            "milliseconds": 26
+          },
+          {
+            "status": "success",
+            "milliseconds": 25
+          },
+          {
+            "status": "success",
+            "milliseconds": 36
+          },
+          {
+            "status": "success",
+            "milliseconds": 19
+          }
+        ],
+        "Matching page required": [
+          {
+            "status": "success",
+            "milliseconds": 2
+          },
+          {
+            "status": "success",
+            "milliseconds": 2
+          },
+          {
+            "status": "success",
+            "milliseconds": 3
+          },
+          {
+            "status": "success",
+            "milliseconds": 1
+          }
+        ],
+        "SQL structured candidate prefilter": [
+          {
+            "status": "success",
+            "milliseconds": 31
+          },
+          {
+            "status": "success",
+            "milliseconds": 12
+          },
+          {
+            "status": "success",
+            "milliseconds": 17
+          },
+          {
+            "status": "success",
+            "milliseconds": 9
+          }
+        ],
+        "Advanced deterministic rules": [
+          {
+            "status": "success",
+            "milliseconds": 10
+          },
+          {
+            "status": "success",
+            "milliseconds": 9
+          },
+          {
+            "status": "success",
+            "milliseconds": 16
+          },
+          {
+            "status": "success",
+            "milliseconds": 8
+          }
+        ],
+        "Validate and bulk persist": [
+          {
+            "status": "success",
+            "milliseconds": 70
+          },
+          {
+            "status": "success",
+            "milliseconds": 54
+          },
+          {
+            "status": "success",
+            "milliseconds": 62
+          },
+          {
+            "status": "success",
+            "milliseconds": 34
+          }
+        ],
+        "Validate measured metrics": [
+          {
+            "status": "success",
+            "milliseconds": 20
+          },
+          {
+            "status": "success",
+            "milliseconds": 14
+          },
+          {
+            "status": "success",
+            "milliseconds": 14
+          },
+          {
+            "status": "success",
+            "milliseconds": 9
+          }
+        ],
+        "More matching pages": [
+          {
+            "status": "success",
+            "milliseconds": 3
+          },
+          {
+            "status": "success",
+            "milliseconds": 3
+          },
+          {
+            "status": "success",
+            "milliseconds": 2
+          },
+          {
+            "status": "success",
+            "milliseconds": 2
+          }
+        ],
+        "Acknowledge B and queue C": [
+          {
+            "status": "success",
+            "milliseconds": 28
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:14:58.172000+00:00",
+      "stopped_at": "2026-10-21 06:14:59.030000+00:00"
+    },
+    {
+      "id": 310,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-c",
+      "version_id": "9ab34225-0629-470b-8eda-8156fd1df182",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 0
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 12
+          }
+        ],
+        "Select delivery transport": [
+          {
+            "status": "success",
+            "milliseconds": 27
+          }
+        ],
+        "Explicit SES test gate": [
+          {
+            "status": "success",
+            "milliseconds": 2
+          }
+        ],
+        "Grouped allowlisted delivery": [
+          {
+            "status": "success",
+            "milliseconds": 467
+          }
+        ],
+        "Delivery metrics": [
+          {
+            "status": "success",
+            "milliseconds": 9
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:15:01.855000+00:00",
+      "stopped_at": "2026-10-21 06:15:02.539000+00:00"
+    },
+    {
+      "id": 311,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-b",
+      "version_id": "c090133d-c946-4154-9fcb-e7b0cb126d81",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 0
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 10
+          }
+        ],
+        "Fetch completed job": [
+          {
+            "status": "success",
+            "milliseconds": 22
+          }
+        ],
+        "Require completed ingestion": [
+          {
+            "status": "success",
+            "milliseconds": 6
+          }
+        ],
+        "Fetch matching progress": [
+          {
+            "status": "success",
+            "milliseconds": 18
+          }
+        ],
+        "Matching page required": [
+          {
+            "status": "success",
+            "milliseconds": 2
+          }
+        ],
+        "Acknowledge B and queue C": [
+          {
+            "status": "success",
+            "milliseconds": 29
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:16:03.075000+00:00",
+      "stopped_at": "2026-10-21 06:16:03.253000+00:00"
+    },
+    {
+      "id": 312,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-c",
+      "version_id": "9ab34225-0629-470b-8eda-8156fd1df182",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 0
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 10
+          }
+        ],
+        "Select delivery transport": [
+          {
+            "status": "success",
+            "milliseconds": 21
+          }
+        ],
+        "Explicit SES test gate": [
+          {
+            "status": "success",
+            "milliseconds": 3
+          }
+        ],
+        "Grouped allowlisted delivery": [
+          {
+            "status": "success",
+            "milliseconds": 151
+          }
+        ],
+        "Delivery metrics": [
+          {
+            "status": "success",
+            "milliseconds": 13
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:16:04.230000+00:00",
+      "stopped_at": "2026-10-21 06:16:04.600000+00:00"
+    },
+    {
+      "id": 313,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-b",
+      "version_id": "c090133d-c946-4154-9fcb-e7b0cb126d81",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 0
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 10
+          }
+        ],
+        "Fetch completed job": [
+          {
+            "status": "success",
+            "milliseconds": 24
+          }
+        ],
+        "Require completed ingestion": [
+          {
+            "status": "success",
+            "milliseconds": 11
+          }
+        ],
+        "Fetch matching progress": [
+          {
+            "status": "success",
+            "milliseconds": 30
+          }
+        ],
+        "Matching page required": [
+          {
+            "status": "success",
+            "milliseconds": 2
+          }
+        ],
+        "Acknowledge B and queue C": [
+          {
+            "status": "success",
+            "milliseconds": 35
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:16:09.235000+00:00",
+      "stopped_at": "2026-10-21 06:16:09.465000+00:00"
+    },
+    {
+      "id": 314,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-c",
+      "version_id": "9ab34225-0629-470b-8eda-8156fd1df182",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 1
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 36
+          }
+        ],
+        "Select delivery transport": [
+          {
+            "status": "success",
+            "milliseconds": 38
+          }
+        ],
+        "Explicit SES test gate": [
+          {
+            "status": "success",
+            "milliseconds": 4
+          }
+        ],
+        "Grouped allowlisted delivery": [
+          {
+            "status": "success",
+            "milliseconds": 137
+          }
+        ],
+        "Delivery metrics": [
+          {
+            "status": "success",
+            "milliseconds": 12
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:16:10.386000+00:00",
+      "stopped_at": "2026-10-21 06:16:10.815000+00:00"
+    },
+    {
+      "id": 315,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-b",
+      "version_id": "c090133d-c946-4154-9fcb-e7b0cb126d81",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 1
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 6
+          }
+        ],
+        "Fetch completed job": [
+          {
+            "status": "success",
+            "milliseconds": 23
+          }
+        ],
+        "Require completed ingestion": [
+          {
+            "status": "success",
+            "milliseconds": 8
+          }
+        ],
+        "Fetch matching progress": [
+          {
+            "status": "success",
+            "milliseconds": 19
+          }
+        ],
+        "Matching page required": [
+          {
+            "status": "success",
+            "milliseconds": 3
+          }
+        ],
+        "Acknowledge B and queue C": [
+          {
+            "status": "success",
+            "milliseconds": 22
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:16:14.771000+00:00",
+      "stopped_at": "2026-10-21 06:16:14.979000+00:00"
+    },
+    {
+      "id": 316,
+      "status": "success",
+      "finished": true,
+      "workflow_id": "loan-workflow-c",
+      "version_id": "9ab34225-0629-470b-8eda-8156fd1df182",
+      "nodes": {
+        "Authenticated webhook": [
+          {
+            "status": "success",
+            "milliseconds": 0
+          }
+        ],
+        "Validate job ID": [
+          {
+            "status": "success",
+            "milliseconds": 11
+          }
+        ],
+        "Select delivery transport": [
+          {
+            "status": "success",
+            "milliseconds": 24
+          }
+        ],
+        "Explicit SES test gate": [
+          {
+            "status": "success",
+            "milliseconds": 3
+          }
+        ],
+        "Grouped allowlisted delivery": [
+          {
+            "status": "success",
+            "milliseconds": 94
+          }
+        ],
+        "Delivery metrics": [
+          {
+            "status": "success",
+            "milliseconds": 8
+          }
+        ]
+      },
+      "started_at": "2026-10-21 06:16:15.936000+00:00",
+      "stopped_at": "2026-10-21 06:16:16.200000+00:00"
+    }
+  ],
+  "before": {
+    "counts": {
+      "ingestion_jobs": 8,
+      "users": 70000,
+      "ingestion_errors": 0,
+      "loan_products": 3,
+      "product_criteria": 3,
+      "matches": 93114,
+      "notification_events": 23114,
+      "workflow_outbox": 14,
+      "crawler_runs": 33,
+      "workflow_run_audit": 14
+    },
+    "original_mailpit_count": 15000,
+    "original_mailpit_ids_sha256": "cb06b29fa5b527dffd4e4fef0c48c26c02368fa771f54a7313d60c8ab100a8aa"
+  },
+  "rollback_status": "Not required. Temporary boundary startup override removed; API runtime page size restored to 1000. Updated application/workflows and isolated Mailpit routing retained. Existing data and volumes preserved.",
+  "installed_workflows": [
+    {
+      "workflow_id": "loan-workflow-a",
+      "version_id": "09c6bfbd-9886-4c21-91db-94219d453bd0",
+      "active_version_id": "09c6bfbd-9886-4c21-91db-94219d453bd0",
+      "export_sha256": "04a16f4470091f5e26e6bc9713b76b50c905b53e2d9f98144297d6cd97da47dd",
+      "nodes_match_export": true,
+      "connections_match_export": true
+    },
+    {
+      "workflow_id": "loan-workflow-b",
+      "version_id": "c090133d-c946-4154-9fcb-e7b0cb126d81",
+      "active_version_id": "c090133d-c946-4154-9fcb-e7b0cb126d81",
+      "export_sha256": "7ee9960c4b291958ce416556b5edc25321bdca6eb390ebe81c16f6704d333fbb",
+      "nodes_match_export": true,
+      "connections_match_export": true
+    },
+    {
+      "workflow_id": "loan-workflow-c",
+      "version_id": "9ab34225-0629-470b-8eda-8156fd1df182",
+      "active_version_id": "9ab34225-0629-470b-8eda-8156fd1df182",
+      "export_sha256": "6f6189279e0b3c7c2cfcd3c8fd7acd5538f5eb7f7dcbdc169006110a20a3ad97",
+      "nodes_match_export": true,
+      "connections_match_export": true
+    }
+  ],
+  "http_commands": [
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/discovery/demo",
+      "status": 202
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-b",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-b",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-c",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-c",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/uploads",
+      "status": 422
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/uploads",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "<presigned-local-object-url>",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/uploads/575961ba-0692-4d8b-8ab0-43dc4105454e/complete",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-b",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-c",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/uploads",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "<presigned-local-object-url>",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/uploads/e289205a-f8a0-407a-83de-6d9ac4085ea4/complete",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-b",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-c",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/uploads",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "<presigned-local-object-url>",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/uploads/38406b91-76ae-4aa7-90ea-adb7c2fada9b/complete",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-b",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-c",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-b",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-c",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-b",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-c",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-b",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:5678/webhook/loan-c",
+      "status": 200
+    }
+  ],
+  "replays": [
+    {
+      "job_id": "575961ba-0692-4d8b-8ab0-43dc4105454e",
+      "B_execution_id": 311,
+      "C_execution_id": 312,
+      "new_messages": 0,
+      "notification_rows_identical": true,
+      "match_rows_identical": true
+    },
+    {
+      "job_id": "e289205a-f8a0-407a-83de-6d9ac4085ea4",
+      "B_execution_id": 313,
+      "C_execution_id": 314,
+      "new_messages": 0,
+      "notification_rows_identical": true,
+      "match_rows_identical": true
+    },
+    {
+      "job_id": "38406b91-76ae-4aa7-90ea-adb7c2fada9b",
+      "B_execution_id": 315,
+      "C_execution_id": 316,
+      "new_messages": 0,
+      "notification_rows_identical": true,
+      "match_rows_identical": true
+    }
+  ],
+  "services_after": {
+    "api": {
+      "state": "running",
+      "health": "healthy"
+    },
+    "dispatcher": {
+      "state": "running",
+      "health": "healthy"
+    },
+    "ingestion-worker": {
+      "state": "running",
+      "health": "healthy"
+    },
+    "integration-mailpit": {
+      "state": "running",
+      "health": "healthy"
+    },
+    "mailpit": {
+      "state": "running",
+      "health": "healthy"
+    },
+    "minio": {
+      "state": "running",
+      "health": "healthy"
+    },
+    "n8n": {
+      "state": "running",
+      "health": "healthy"
+    },
+    "postgres": {
+      "state": "running",
+      "health": "healthy"
+    }
+  },
+  "application_images_after": {
+    "api": "sha256:fecd26c7579b8a5e56f8eb820abba546537edb0896979d20b77c68ca596cfe7a",
+    "dispatcher": "sha256:fecd26c7579b8a5e56f8eb820abba546537edb0896979d20b77c68ca596cfe7a",
+    "ingestion-worker": "sha256:fecd26c7579b8a5e56f8eb820abba546537edb0896979d20b77c68ca596cfe7a"
+  },
+  "after_counts": {
+    "ingestion_jobs": 11,
+    "users": 70036,
+    "ingestion_errors": 0,
+    "loan_products": 3,
+    "product_criteria": 3,
+    "matches": 93173,
+    "notification_events": 23137,
+    "workflow_outbox": 20,
+    "crawler_runs": 36,
+    "workflow_run_audit": 20
+  },
+  "synthetic_audits": [
+    {
+      "job_id": "575961ba-0692-4d8b-8ab0-43dc4105454e",
+      "audits": [
+        {
+          "workflow": "B",
+          "status": "COMPLETED",
+          "metrics": {
+            "matching_version": "deterministic-v1",
+            "matching_mode": "keyset-pages",
+            "total_users": 12,
+            "total_active_products": 3,
+            "naive_candidates": 36,
+            "sql_candidates": 20,
+            "advanced_candidates": 20,
+            "matches_created": 20,
+            "llm_evaluations": 0,
+            "estimated_llm_calls_avoided": 36,
+            "reduction_percentage": 44.444,
+            "matching_seconds": 0.05624249700031214,
+            "candidate_pipeline_seconds": 0.05624249700031214,
+            "sql_execution_seconds": 0.006657644999904733,
+            "sql_timing_scope": "backend page execute plus fetch; excludes n8n and delivery",
+            "sql_prefilter_passes": 2,
+            "page_count": 1,
+            "cursor": [
+              70012,
+              1
+            ],
+            "product_fingerprint": "6c1d805571d9425581a4c391e102519115bdf69af4a46d4314de198423a5941e",
+            "persisted_by_n8n_execution_id": "305",
+            "completed_by_n8n_execution_id": "305"
+          }
+        },
+        {
+          "workflow": "C",
+          "status": "COMPLETED",
+          "metrics": {
+            "last_batch_sent": 0,
+            "pending": 0,
+            "uncertain": 0,
+            "sent_total": 8,
+            "n8n_execution_id": "312"
+          }
+        }
+      ],
+      "outbox": [
+        {
+          "workflow": "B",
+          "status": "DELIVERED",
+          "attempts": 0,
+          "progress_count": 0
+        },
+        {
+          "workflow": "C",
+          "status": "DELIVERED",
+          "attempts": 0,
+          "progress_count": 0
+        }
+      ]
+    },
+    {
+      "job_id": "e289205a-f8a0-407a-83de-6d9ac4085ea4",
+      "audits": [
+        {
+          "workflow": "B",
+          "status": "COMPLETED",
+          "metrics": {
+            "matching_version": "deterministic-v1",
+            "matching_mode": "keyset-pages",
+            "total_users": 12,
+            "total_active_products": 3,
+            "naive_candidates": 36,
+            "sql_candidates": 20,
+            "advanced_candidates": 20,
+            "matches_created": 20,
+            "llm_evaluations": 0,
+            "estimated_llm_calls_avoided": 36,
+            "reduction_percentage": 44.444,
+            "matching_seconds": 0.11352374400030385,
+            "candidate_pipeline_seconds": 0.11352374400030385,
+            "sql_execution_seconds": 0.02421179500015569,
+            "sql_timing_scope": "backend page execute plus fetch; excludes n8n and delivery",
+            "sql_prefilter_passes": 2,
+            "page_count": 5,
+            "cursor": [
+              70024,
+              1
+            ],
+            "product_fingerprint": "6c1d805571d9425581a4c391e102519115bdf69af4a46d4314de198423a5941e",
+            "persisted_by_n8n_execution_id": "307",
+            "completed_by_n8n_execution_id": "307"
+          }
+        },
+        {
+          "workflow": "C",
+          "status": "COMPLETED",
+          "metrics": {
+            "last_batch_sent": 0,
+            "pending": 0,
+            "uncertain": 0,
+            "sent_total": 8,
+            "n8n_execution_id": "314"
+          }
+        }
+      ],
+      "outbox": [
+        {
+          "workflow": "B",
+          "status": "DELIVERED",
+          "attempts": 0,
+          "progress_count": 0
+        },
+        {
+          "workflow": "C",
+          "status": "DELIVERED",
+          "attempts": 0,
+          "progress_count": 0
+        }
+      ]
+    },
+    {
+      "job_id": "38406b91-76ae-4aa7-90ea-adb7c2fada9b",
+      "audits": [
+        {
+          "workflow": "B",
+          "status": "COMPLETED",
+          "metrics": {
+            "matching_version": "deterministic-v1",
+            "matching_mode": "keyset-pages",
+            "total_users": 12,
+            "total_active_products": 3,
+            "naive_candidates": 36,
+            "sql_candidates": 19,
+            "advanced_candidates": 19,
+            "matches_created": 19,
+            "llm_evaluations": 0,
+            "estimated_llm_calls_avoided": 36,
+            "reduction_percentage": 47.222,
+            "matching_seconds": 0.06518696499961152,
+            "candidate_pipeline_seconds": 0.06518696499961152,
+            "sql_execution_seconds": 0.01570833499999935,
+            "sql_timing_scope": "backend page execute plus fetch; excludes n8n and delivery",
+            "sql_prefilter_passes": 2,
+            "page_count": 4,
+            "cursor": [
+              70036,
+              1
+            ],
+            "product_fingerprint": "6c1d805571d9425581a4c391e102519115bdf69af4a46d4314de198423a5941e",
+            "persisted_by_n8n_execution_id": "309",
+            "completed_by_n8n_execution_id": "309"
+          }
+        },
+        {
+          "workflow": "C",
+          "status": "COMPLETED",
+          "metrics": {
+            "last_batch_sent": 0,
+            "pending": 0,
+            "uncertain": 0,
+            "sent_total": 7,
+            "n8n_execution_id": "316"
+          }
+        }
+      ],
+      "outbox": [
+        {
+          "workflow": "B",
+          "status": "DELIVERED",
+          "attempts": 0,
+          "progress_count": 0
+        },
+        {
+          "workflow": "C",
+          "status": "DELIVERED",
+          "attempts": 0,
+          "progress_count": 0
+        }
+      ]
+    }
+  ],
+  "historical_10000_user_jobs_after": [
+    {
+      "id": "0b030446-e35b-4f57-88fa-4eaed79721f2",
+      "status": "COMPLETED",
+      "accepted": 10000,
+      "rejected": 0
+    },
+    {
+      "id": "83628220-3ebb-4046-8b58-727fd0abdf50",
+      "status": "COMPLETED",
+      "accepted": 10000,
+      "rejected": 0
+    },
+    {
+      "id": "a4134ee6-dcfe-445e-bfea-d77d3283af1c",
+      "status": "COMPLETED",
+      "accepted": 10000,
+      "rejected": 0
+    },
+    {
+      "id": "a7f12e8e-877a-47ed-8cb0-42131a640916",
+      "status": "COMPLETED",
+      "accepted": 10000,
+      "rejected": 0
+    },
+    {
+      "id": "b113c8e4-b1f9-457b-a2b4-dd4931b030cd",
+      "status": "COMPLETED",
+      "accepted": 10000,
+      "rejected": 0
+    },
+    {
+      "id": "cf5351fc-21b4-476e-a990-63c7fdb92cf0",
+      "status": "COMPLETED",
+      "accepted": 10000,
+      "rejected": 0
+    },
+    {
+      "id": "d76d374c-fd6b-42ac-ac69-6738356f3857",
+      "status": "COMPLETED",
+      "accepted": 10000,
+      "rejected": 0
+    }
+  ],
+  "checks": {
+    "ruff": {
+      "command": ".\\.venv\\Scripts\\python.exe -m ruff check backend scripts migrations",
+      "exit_code": 0
+    },
+    "mypy": {
+      "command": ".\\.venv\\Scripts\\python.exe -m mypy backend/app",
+      "exit_code": 0
+    },
+    "workflows": {
+      "command": ".\\.venv\\Scripts\\python.exe scripts/validate_workflows.py",
+      "exit_code": 0
+    },
+    "aws_static": {
+      "command": ".\\.venv\\Scripts\\python.exe scripts/validate_config.py",
+      "exit_code": 0
+    },
+    "compose": {
+      "command": "docker compose config --quiet",
+      "exit_code": 0
+    },
+    "frontend": {
+      "command": "node frontend/build.mjs",
+      "exit_code": 0
+    },
+    "diff": {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    "known_configured_secret_values": {
+      "exit_code": 0,
+      "files_scanned": 111,
+      "matches": 0,
+      "scope": "Known configured values only; not a universal secret audit"
+    },
+    "documentation_file_links": {
+      "exit_code": 0,
+      "targets_checked": 34,
+      "broken": 0,
+      "scope": "Relative Markdown file targets; not external URL or anchor validation"
+    }
+  },
+  "pytest": {
+    "passed": 114,
+    "deselected": 3,
+    "warnings": 2,
+    "seconds": 61.78,
+    "exit_code": 0,
+    "junit": "integration-pytest.xml",
+    "scope": "loan_test isolated schemas; no supplied-file/full-data/actual-Mailpit test"
+  },
+  "totals": {
+    "new_jobs": 3,
+    "new_user_snapshots": 36,
+    "new_matches": 59,
+    "new_notifications": 23,
+    "isolated_mailpit_captures": 23,
+    "replay_new_captures": 0,
+    "authorized_capture_limit": 24
+  },
+  "preservation": {
+    "seven_completed_historical_10000_user_jobs_unchanged": true,
+    "all_historical_row_fingerprints_unchanged": true,
+    "original_93114_matches_unchanged": true,
+    "original_23114_sent_notifications_unchanged": true,
+    "original_15000_mailpit_message_ids_unchanged": true,
+    "existing_volumes_preserved": true,
+    "postgres_minio_original_mailpit_not_restarted": true,
+    "credentials_and_reader_password_unchanged": true,
+    "env_and_supplied_csv_unchanged": true,
+    "original_backup_checksums_verified": true
+  },
+  "safety": {
+    "default_runtime_page_size": 1000,
+    "original_api_startup_command_restored": true,
+    "all_seven_original_services_healthy": true,
+    "dedicated_mailpit_healthy": true,
+    "delivery_mode": "preview",
+    "all_messages_addressed_only_to_configured_controlled_inbox": true,
+    "personalized_content_and_product_lists_verified": true,
+    "native_ses_node_disabled_and_not_executed": true,
+    "n8n_has_no_aws_credential": true,
+    "llm_disabled_with_empty_key": true,
+    "all_live_sources_unapproved": true,
+    "no_aws_deployment": true,
+    "no_historical_webhook_replay": true,
+    "scope_note": "Transport configuration and executed-node evidence; no packet-level monitoring claim."
+  },
+  "test_harness": {
+    "scope": "Private operator-only harnesses; public report intentionally omits their storage location.",
+    "files": {
+      "integration-control.py": "70a7c08204fa4c0d7b4c5d945ab17d0b167ac41ed14abf7e08819c485845aa2d",
+      "integration-tests.py": "359f7d62aff9dab31db53e31fb2479796b1d2afefcc2752145addcc5c5265e50"
+    },
+    "invocations": [
+      {
+        "harness": "integration-control.py",
+        "arguments": [
+          "build"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-control.py",
+        "arguments": [
+          "api"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-control.py",
+        "arguments": [
+          "workflows"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-control.py",
+        "arguments": [
+          "workers"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-control.py",
+        "arguments": [
+          "boundary"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-control.py",
+        "arguments": [
+          "default"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-tests.py",
+        "arguments": [
+          "guard"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-tests.py",
+        "arguments": [
+          "fixtures"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-tests.py",
+        "arguments": [
+          "job",
+          "default",
+          "1000"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-tests.py",
+        "arguments": [
+          "job",
+          "exact",
+          "5"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-tests.py",
+        "arguments": [
+          "job",
+          "partial",
+          "5"
+        ],
+        "exit_code": 0
+      },
+      {
+        "harness": "integration-tests.py",
+        "arguments": [
+          "replay"
+        ],
+        "exit_code": 0
+      }
+    ]
+  },
+  "test_commands": [
+    "$env:PYTHONDONTWRITEBYTECODE=\"1\"",
+    "$env:PYTHONPATH=\"backend;.\"",
+    "$env:LLM_ENABLED=\"false\"; $env:N8N_SES_ENABLED=\"false\"",
+    "$env:TEST_DATABASE_URL = & .\\.venv\\Scripts\\python.exe -c \"from dotenv import dotenv_values; print(dotenv_values('.env')['DATABASE_URL'].rsplit('/',1)[0]+'/loan_test')\"",
+    ".\\.venv\\Scripts\\python.exe -m pytest -q -k \"not test_10000_ingestion_and_idempotency and not test_supplied_csv_inspection and not test_actual_mailpit_preview\" --junitxml=reports/integration-pytest.xml"
+  ],
+  "remaining_unverified": [
+    "Browser-driven dashboard interaction: the identical upload API/presigned PUT/completion protocol was exercised through HTTP.",
+    "Actual AWS SES delivery/received external email: disabled, not attempted.",
+    "Permitted live lender crawling: disabled, not attempted.",
+    "Live LLM API/provider contract: disabled, not attempted.",
+    "AWS deployment/cloud resources: not attempted.",
+    "Multiple live 1000-candidate pages and larger-data load testing: tiny boundary instrumentation plus isolated regressions only.",
+    "Backup restoration drill: catalogs/checksums verified; no restore performed."
+  ],
+  "report_documentation_updates": [
+    "README.md",
+    "n8n/README.md",
+    "reports/README.md"
+  ],
+  "completed_at_utc": "2026-10-21T06:23:36.239587+00:00"
+}

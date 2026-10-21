@@ -6,11 +6,15 @@ def validate(path: Path) -> None:
     workflow = json.loads(path.read_text(encoding="utf-8"))
     names = {node["name"] for node in workflow["nodes"]}
     assert len(names) == len(workflow["nodes"])
-    allowed = {"webhook", "httpRequest", "code", "scheduleTrigger", "manualTrigger", "if", "postgres"}
+    allowed = {"webhook", "httpRequest", "code", "scheduleTrigger", "manualTrigger", "if", "postgres", "awsSes"}
     for node in workflow["nodes"]:
         assert node["type"].removeprefix("n8n-nodes-base.") in allowed
         if node["type"].endswith("webhook"):
             assert node["parameters"]["authentication"] == "headerAuth"
+        if node["type"].endswith("awsSes"):
+            assert node.get("disabled") is True, "SES export must require deliberate operator enablement"
+            assert node.get("retryOnFail") is False
+            assert node["parameters"]["additionalFields"] == {}, "No extra recipient paths"
     for source, edges in workflow["connections"].items():
         assert source in names
         for outputs in edges["main"]:

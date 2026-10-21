@@ -20,3 +20,7 @@ flowchart TD
  Gate --> HTTP[Official page HTTP fetch]
  HTTP --> Extract[Deterministic extraction and validation]
  Extract --> DB
+ C -->|optional gated path| Claim[Reserve durable notification attempt]
+ Claim --> SES[Disabled AWS SES test node]
+ SES --> Receipt[Authenticated receipt / UNKNOWN reconciliation]
+ Receipt --> DB
