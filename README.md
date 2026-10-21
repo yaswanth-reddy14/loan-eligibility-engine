@@ -1,10 +1,6 @@
 # Loan Eligibility Engine
 
-A CSV-to-notification pipeline built with FastAPI, PostgreSQL and three n8n workflows. It validates borrower records, evaluates them against versioned loan criteria, and records decisions with supporting evidence. Results mean **POSSIBLY_ELIGIBLE**, never loan approval; incomplete criteria produce **REVIEW_REQUIRED** without email.
-
-## Problem
-
-Checking every borrower against every product wastes comparisons and makes decisions difficult to trace. This project separates ingestion, candidate selection, rule evaluation and notification while preserving each upload's history.
+Evaluating a large borrower CSV against loan products requires reliable ingestion, efficient matching and traceable decisions. This pipeline uses FastAPI, PostgreSQL and three n8n workflows to validate records, filter out impossible borrower-product pairs with SQL, evaluate versioned criteria and deliver controlled notifications while preserving each upload's history. Results mean **POSSIBLY_ELIGIBLE**, never loan approval; incomplete criteria produce **REVIEW_REQUIRED** without email.
 
 ## Main features
 
@@ -74,7 +70,7 @@ Each upload creates new history. Do not repeat the 10,000-user upload just to in
 
 The [workflow guide](n8n/README.md) explains import, credentials and retries. Unknown rules are not treated as satisfied. Ambiguous email sends require reconciliation; external delivery is not claimed to be exactly once.
 
-## Matching optimization and measured results
+## Measured results: 10,000 users and 55.66% fewer candidate comparisons
 
 The historical **10,000-user** run reduced **30,000 candidate comparisons to 13,302**, a **55.66% reduction in comparisons**, not runtime. Its 13,302 outcomes and 3,302 job-specific Mailpit captures are retained in the [evidence index](reports/README.md). Timing samples and query plans are explained in [optimization](docs/optimization.md).
 
@@ -90,7 +86,7 @@ Ruff, MyPy, workflow validators, Compose/static Serverless validation and fronte
 
 Local Compose and Mailpit have recorded integration evidence. AWS configuration and local Lambda packaging exist, but the cloud stack and real SES delivery remain **unverified**. See [deployment prerequisites](docs/deployment.md).
 
-SES preparation is offline/local only. The latest authenticated account differs from the account in the reported SCP denial; account confirmation and identity/permission checks remain unresolved. No SES message was sent. See the [isolated preparation guide](n8n/ses-test/README.md); account-specific diagnostic reports stay local.
+SES preparation has been tested only offline and locally; no real SES message was sent. See the [isolated preparation guide](n8n/ses-test/README.md) for verification and permission prerequisites.
 
 ## Known limitations
 
@@ -98,10 +94,7 @@ SES preparation is offline/local only. The latest authenticated account differs 
 - The dashboard uses an operator bearer token, not multi-tenant authentication. See [security](docs/security.md).
 - Optional Gemini extraction is disabled; paid API behavior remains unverified.
 - Real SES receipt, AWS deployment and recorded browser demonstration remain outstanding.
-- Locally retained assignment instructions permit local deployment; public AWS deployment is a bonus. Live lender discovery and actual SES receipt remain unverified assignment requirements. Submission still needs a final review, video and approved private GitHub publication/access. Requested reviewers are `ujjwalkala-clickpe`, `HarshSrivastav-Dailype`, `ManishBiswal-clickpe` and `tushar-clickpe`.
 
 ## Demo video
 
 **[Video link pending recording]**
-
-Show the dashboard upload, A/B/C executions, job-filtered results, comparison reduction and an actual Mailpit capture. Add the recording link after reviewing it for secrets and personal data.
