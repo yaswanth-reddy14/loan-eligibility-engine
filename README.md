@@ -1,100 +1,294 @@
 # Loan Eligibility Engine
 
-Evaluating a large borrower CSV against loan products requires reliable ingestion, efficient matching and traceable decisions. This pipeline uses FastAPI, PostgreSQL and three n8n workflows to validate records, filter out impossible borrower-product pairs with SQL, evaluate versioned criteria and deliver controlled notifications while preserving each upload's history. Results mean **POSSIBLY_ELIGIBLE**, never loan approval; incomplete criteria produce **REVIEW_REQUIRED** without email.
+A loan eligibility screening pipeline built with **FastAPI, PostgreSQL, n8n, and Docker** to process borrower CSV files, evaluate loan product criteria, and automate notifications.
 
-## Main features
+The system uses SQL-based candidate filtering to reduce unnecessary comparisons, processes matching results in manageable batches, and maintains a traceable history of every upload.
 
-- Signed CSV uploads, row validation and immutable per-job user snapshots.
-- SQL candidate filtering followed by explicit eligibility rules and backend revalidation.
-- Durable workflow dispatch, paged matching and idempotent persistence.
-- An operator dashboard with job-specific results and controlled local email capture.
+**Key result:** Processed **10,000 borrowers** and reduced candidate comparisons from **30,000 to 13,302 — a 55.66% reduction in comparisons**.
+
+[**Watch the Project Demo**](https://youtu.be/98zjUfsD70Q)
+
+> **Note:** This is an eligibility screening system, not a loan approval platform. `POSSIBLY_ELIGIBLE` indicates a potential match, while incomplete criteria produce `REVIEW_REQUIRED` without triggering an email.
+
+## Main Features
+
+- **CSV Ingestion:** Signed uploads, input validation, and immutable borrower snapshots for each processing job.
+- **Optimized Matching:** SQL candidate filtering followed by rule-based eligibility evaluation and backend revalidation.
+- **Workflow Automation:** Three n8n workflows for loan product discovery, borrower matching, and notifications.
+- **Scalable Processing:** Paginated matching with up to 1,000 candidates per page and durable workflow dispatch.
+- **Reliable Persistence:** Idempotent processing, database-backed job history, and notification state tracking.
+- **Operator Dashboard:** Upload CSV files, monitor jobs, and inspect eligibility results.
+- **Email Testing:** Controlled notification delivery using Mailpit without emailing actual applicants.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  UI[Dashboard] --> Storage[MinIO upload]
-  UI --> Jobs[PostgreSQL job queue]
-  Jobs --> Ingest[Ingestion worker]
-  Storage --> Ingest
-  Ingest --> DB[(PostgreSQL)]
-  A[n8n A: product discovery] --> DB
-  DB --> Outbox[Durable outbox]
-  Outbox --> B[n8n B: SQL and rules]
-  B --> API[Backend revalidation and persistence]
-  API --> DB
-  Outbox -->|after final B acknowledgement| C[n8n C: notifications]
-  C --> Mail[Mailpit]
+    UI[Dashboard] --> Storage[MinIO Upload]
+    UI --> Jobs[PostgreSQL Job Queue]
+    Jobs --> Ingest[Ingestion Worker]
+    Storage --> Ingest
+    Ingest --> DB[(PostgreSQL)]
+    A[n8n A: Product Discovery] --> DB
+    DB --> Outbox[Durable Outbox]
+    Outbox --> B[n8n B: Eligibility Matching]
+    B --> API[Backend Revalidation]
+    API --> DB
+    Outbox -->|After B Completion| C[n8n C: Notifications]
+    C --> Mail[Mailpit]
 ```
 
-The local queue is a durable job adapter. The unverified AWS path uses S3 events and SQS with shared ingestion logic. Matching pages contain up to **1,000 candidates**; cursor and results persist atomically. See [architecture](docs/architecture.md) and [design decisions](docs/design-decisions.md).
+The application separates ingestion, candidate selection, eligibility evaluation, and notification delivery.
 
-## Tech stack
+Each upload creates an independent processing job. Matching results and pagination progress are persisted to support reliable processing and recovery.
 
-Python 3.12, FastAPI, SQLAlchemy/Alembic, PostgreSQL, n8n, MinIO, Mailpit, Docker Compose, and a plain JavaScript frontend. The AWS template targets Lambda, S3 and SQS with separately provisioned private database and n8n infrastructure.
+The local deployment uses a PostgreSQL-backed job adapter. The AWS configuration provides an alternative architecture using S3 events, SQS, and Lambda, but cloud deployment has not been verified.
 
-## Quick start with Docker Compose
+For implementation details, see [Architecture](docs/architecture.md) and [Design Decisions](docs/design-decisions.md).
 
-For a **fresh local installation on Windows**, install Python 3.12, Node 22+ and Docker Desktop with Linux containers:
+## Tech Stack
+
+| Component | Technology |
+|---|---|
+| Backend | Python 3.12, FastAPI |
+| Database | PostgreSQL |
+| ORM and Migrations | SQLAlchemy, Alembic |
+| Workflow Automation | n8n |
+| Object Storage | MinIO |
+| Frontend | HTML, CSS, JavaScript |
+| Email Testing | Mailpit |
+| Containerization | Docker, Docker Compose |
+| AWS Configuration | Lambda, S3, SQS, SES |
+| Testing | Pytest, Ruff, MyPy |
+
+## Getting Started
+
+### Prerequisites
+
+For a fresh local installation on Windows:
+
+- Python 3.12
+- Node.js 22+
+- Docker Desktop with Linux containers
+- Git
+
+### 1. Clone the repository
+
+```powershell
+git clone https://github.com/yaswanth-reddy14/loan-eligibility-engine.git
+cd loan-eligibility-engine
+```
+
+### 2. Create the Python environment
 
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r backend/requirements-dev.txt
+```
+
+### 3. Initialize the application
+
+```powershell
 powershell -ExecutionPolicy Bypass -File scripts/setup.ps1
+```
+
+The setup script initializes the local environment, generates required secrets when appropriate, builds the services, and starts Docker Compose.
+
+It creates `.env` from [.env.example](.env.example) only if `.env` does not already exist.
+
+The initial MinIO build requires network access.
+
+### 4. Configure n8n workflows
+
+```powershell
 $env:PYTHONPATH = 'backend;.'
 .\.venv\Scripts\python.exe scripts/import_n8n.py
 ```
 
-Setup creates `.env` from [.env.example](.env.example) only when absent, generates local secrets, builds services and starts Compose. The first MinIO build needs network access. Import configures credentials, publishes A/B/C and restarts n8n; wait for healthy services. **Import rotates the local n8n database reader password**, so it is a setup operation, not a routine verification command. Follow [n8n setup](n8n/README.md) for credential details.
+This imports and configures the three workflows and their local credentials.
 
-Open the [dashboard](http://localhost:8000), [n8n](http://localhost:5678) and [Mailpit](http://localhost:8025). Enter `API_TOKEN` from `.env` into the dashboard; it remains in page memory. Environment configuration includes database/object-storage credentials, `WORKFLOW_SECRET` and a controlled `NOTIFICATION_TEST_INBOX`. Keep `.env` and `users.csv` private and Git-ignored.
+**Important:** The import process rotates the local n8n database reader password. Run it during initial setup, not as a routine verification command.
 
-For an existing installation, preserve its environment and Compose overrides. The current integration stack uses a separate Mailpit inbox on port **18025**; the fresh-install default is 8025. Routine shutdown is `docker compose down` without deleting volumes. See [troubleshooting](docs/troubleshooting.md).
+See [n8n Setup](n8n/README.md) for configuration details.
 
-## Upload a CSV and run the workflow
+### 5. Open the application
 
-1. Keep the supplied `users.csv` in the project root; it is not included in Git.
-2. Run **n8n A: fictional discovery** in the dashboard to load fixture products.
-3. Upload the CSV and select its generated job to inspect ingestion, matching and notification counts.
-4. Inspect the corresponding A/B/C executions in n8n and captured messages in Mailpit.
-
-Each upload creates new history. Do not repeat the 10,000-user upload just to inspect an existing job. Notifications use the configured test inbox, never CSV recipients. The [script index](scripts/README.md) describes optional demonstration and replay commands.
-
-## Workflows A, B and C
-
-| Export | Responsibility |
+| Service | Local URL |
 |---|---|
-| [A: product discovery](n8n/workflows/A_loan_product_discovery.json) | Load fictional fixtures; live sources require explicit permission review. |
-| [B: user matching](n8n/workflows/B_user_loan_matching.json) | Select candidates with SQL, evaluate rules in pages, and submit results for backend validation. |
-| [C: notification](n8n/workflows/C_user_notification.json) | Deliver controlled notifications after B finishes, retaining delivery state for reconciliation. |
+| Dashboard | http://localhost:8000 |
+| n8n | http://localhost:5678 |
+| Mailpit | http://localhost:8025 |
 
-The [workflow guide](n8n/README.md) explains import, credentials and retries. Unknown rules are not treated as satisfied. Ambiguous email sends require reconciliation; external delivery is not claimed to be exactly once.
+The existing integration environment may use a separate Mailpit inbox on port `18025`.
 
-## Measured results: 10,000 users and 55.66% fewer candidate comparisons
+Enter the `API_TOKEN` from your local `.env` file into the dashboard when required.
 
-The historical **10,000-user** run reduced **30,000 candidate comparisons to 13,302**, a **55.66% reduction in comparisons**, not runtime. Its 13,302 outcomes and 3,302 job-specific Mailpit captures are retained in the [evidence index](reports/README.md). Timing samples and query plans are explained in [optimization](docs/optimization.md).
+Keep `.env`, credentials, and borrower CSV files private.
 
-A separate controlled local integration run on 21 October used **36 synthetic users**, produced **59 oracle-equivalent outcomes** and captured **23 emails** in isolated Mailpit. It verified the updated workflows and preserved historical data; it did not repeat the large dataset or establish a new large-scale performance result. See [integration verification](reports/integration-verification.md).
+For existing installations, preserve the current environment, Docker volumes, and Compose overrides.
 
-## Testing and verification
+To stop the application without deleting its volumes:
 
-The latest bounded local regression run passed **133 tests**, with **3 deliberately deselected** (full supplied-data ingestion, supplied-CSV inspection and the SMTP preview test). See [testing commands and scope](docs/testing.md) and the [cleanup verification](reports/recruiter-cleanup.md). Tests use disposable PostgreSQL schemas; no full-dataset reprocessing is needed for this check.
+```powershell
+docker compose down
+```
 
-Ruff, MyPy, workflow validators, Compose/static Serverless validation and frontend build are separate checks. Local HTTP/build evidence does not establish browser interaction, remote CI or cloud deployment.
+For additional guidance, see [Troubleshooting](docs/troubleshooting.md).
 
-## AWS and local deployment notes
+## How It Works
 
-Local Compose and Mailpit have recorded integration evidence. AWS configuration and local Lambda packaging exist, but the cloud stack and real SES delivery remain **unverified**. See [deployment prerequisites](docs/deployment.md).
+### Step 1 — Load Loan Products
 
-SES preparation has been tested only offline and locally; no real SES message was sent. See the [isolated preparation guide](n8n/ses-test/README.md) for verification and permission prerequisites.
+Run Workflow A through the dashboard to load the fictional loan products and their eligibility criteria.
 
-## Known limitations
+### Step 2 — Upload Borrower Data
 
-- Loan products are fictional fixtures; approved live lender crawling is not demonstrated.
-- The dashboard uses an operator bearer token, not multi-tenant authentication. See [security](docs/security.md).
-- Optional Gemini extraction is disabled; paid API behavior remains unverified.
-- Real SES receipt, AWS deployment and recorded browser demonstration remain outstanding.
+Prepare a CSV using the expected schema and upload it through the dashboard.
 
-## Demo video
+For the supplied assignment dataset, keep `users.csv` in the project root. It is intentionally excluded from Git.
 
-https://youtu.be/98zjUfsD70Q
+The backend validates the records and creates a separate job for the upload.
+
+### Step 3 — Evaluate Eligibility
+
+The matching engine first filters candidate borrower-product combinations using SQL.
+
+Detailed eligibility rules are then applied to the remaining candidates.
+
+Results are revalidated by the backend before persistence.
+
+### Step 4 — Review Results
+
+Select the corresponding job in the dashboard to inspect:
+
+- Ingestion and processing status
+- Matching outcomes
+- Potentially eligible applicants
+- Cases requiring further review
+- Notification counts
+
+Results are associated with their upload job to preserve processing history.
+
+### Step 5 — Verify Notifications
+
+Workflow C processes notification-ready results after matching completes.
+
+Emails are routed to a configured test inbox and captured using Mailpit.
+
+CSV recipient addresses are not used for live delivery.
+
+See [Scripts](scripts/README.md) for optional demonstration and replay commands.
+
+## n8n Workflows
+
+The automation is divided into three independent workflows.
+
+| Workflow | Responsibility |
+|---|---|
+| [A — Loan Product Discovery](n8n/workflows/A_loan_product_discovery.json) | Loads fictional loan products and their eligibility criteria into PostgreSQL. |
+| [B — User Loan Matching](n8n/workflows/B_user_loan_matching.json) | Filters candidates using SQL, evaluates eligibility rules in pages, and submits results for backend validation. |
+| [C — User Notification](n8n/workflows/C_user_notification.json) | Processes notification-ready results and records delivery state. |
+
+Separating these responsibilities makes the system easier to maintain and allows matching and notifications to be handled independently.
+
+Unknown or incomplete criteria are not treated as satisfied.
+
+Notification handling includes state tracking and reconciliation for ambiguous delivery outcomes. External email delivery is not claimed to be exactly once.
+
+See [Workflow Documentation](n8n/README.md).
+
+## Matching Optimization
+
+The matching engine uses SQL filtering to reduce the number of borrower-product combinations that require detailed evaluation.
+
+### Historical 10,000-User Test
+
+| Metric | Result |
+|---|---:|
+| Borrowers processed | 10,000 |
+| Sample loan products | 3 |
+| Baseline candidate comparisons | 30,000 |
+| Comparisons after SQL filtering | 13,302 |
+| Candidate comparison reduction | **55.66%** |
+| Recorded matching outcomes | 13,302 |
+| Job-specific Mailpit captures | 3,302 |
+
+The optimization reduced candidate comparisons from **30,000 to 13,302**, avoiding **16,698 unnecessary comparisons**.
+
+This is a measurement of reduced comparison count, **not a 55.66% improvement in execution time**.
+
+See [Optimization Analysis](docs/optimization.md) and [Evidence Index](reports/README.md).
+
+### Controlled Integration Verification
+
+A separate local integration test on 21 October 2026 used synthetic applicant data to validate the updated workflows.
+
+| Metric | Result |
+|---|---:|
+| Synthetic borrowers | 36 |
+| Verified matching outcomes | 59 |
+| Captured Mailpit emails | 23 |
+
+The matching outcomes agreed with an independent reference evaluation.
+
+The test also checked pagination, notification replay behavior, and preservation of existing historical records.
+
+This smaller integration run does not represent a repeat of the 10,000-user performance test.
+
+See [Integration Verification](reports/integration-verification.md).
+
+## Testing and Verification
+
+The latest recorded local regression run produced:
+
+**133 tests passed, 3 deliberately deselected.**
+
+The deselected tests covered full supplied-data ingestion, supplied-CSV inspection, and SMTP preview behavior.
+
+Additional checks included:
+
+- Ruff linting
+- MyPy type checking
+- n8n workflow validation
+- Docker Compose configuration validation
+- Static Serverless configuration validation
+- Frontend build
+- Documentation link checks
+- Known-secret scanning
+
+The tests use disposable PostgreSQL schemas where appropriate, avoiding unnecessary reprocessing of the historical dataset.
+
+See [Testing Documentation](docs/testing.md) and [Cleanup Verification](reports/recruiter-cleanup.md).
+
+## Deployment
+
+### Local Deployment
+
+The application runs locally through Docker Compose, including its backend, database, workflow automation, object storage, dashboard, and test email infrastructure.
+
+Local workflow integration and Mailpit notification capture have been verified.
+
+### AWS Configuration
+
+The repository includes AWS Serverless configuration targeting Lambda, S3, and SQS.
+
+An isolated SES test workflow and supporting configuration are also provided.
+
+However, the AWS cloud stack has not been deployed and real SES email delivery has not been verified.
+
+See [Deployment Documentation](docs/deployment.md) and [SES Preparation](n8n/ses-test/README.md).
+
+## Known Limitations
+
+- Loan product discovery currently uses fictional fixtures; live lender crawling has not been demonstrated.
+- AWS cloud deployment and real SES delivery remain unverified.
+- The dashboard uses an operator bearer token rather than multi-tenant authentication.
+- Optional Gemini-based extraction is disabled, and live provider API behavior has not been verified.
+
+See [Security Considerations](docs/security.md) for additional details.
+
+## Demo Video
+
+**[Watch the Loan Eligibility Engine Demo](https://youtu.be/98zjUfsD70Q)**
+
+The demonstration covers the dashboard, CSV processing, eligibility matching, n8n workflows, notification capture, and measured optimization results.
