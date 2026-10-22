@@ -97,4 +97,4 @@ SES preparation has been tested only offline and locally; no real SES message wa
 
 ## Demo video
 
-https://drive.google.com/file/d/1Q1WBPkT2C1mAheKhuD0cVDX41O6YDWLa/view?usp=sharing
+https://youtu.be/98zjUfsD70Q
